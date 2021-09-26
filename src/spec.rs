@@ -1,11 +1,5 @@
-use std::collections::HashMap;
-use chrono::{DateTime, Local};
 use super::error::Error;
 use std::fmt;
-
-pub const LINE_TERMINATOR: char = '\r';
-pub const SIP_DATE_FORMAT: &str = "%Y%m%d    %H%M%S";
-pub const STRING_COLUMN_PAD: u8 = 32; // for printing/debugging
 
 pub struct FixedField {
     pub label: &'static str,
@@ -29,65 +23,6 @@ pub struct Message {
     pub fixed_fields: &'static [&'static FixedField],
     pub required_fields: &'static [&'static Field],
     pub optional_fields: &'static [&'static Field],
-}
-
-pub struct Util {
-    field_map: HashMap<&'static str, &'static Field>,
-    message_map: HashMap<&'static str, &'static Message>,
-}
-
-impl Util {
-
-    pub fn new() -> Self {
-        let mut u = Util {
-            field_map: HashMap::new(),
-            message_map: HashMap::new(),
-        };
-        u.set_field_map();
-        u.set_message_map();
-        u
-    }
-
-    fn set_field_map(&mut self) {
-        self.field_map.insert(F_LOGIN_UID.code, &F_LOGIN_UID);
-    }
-
-    fn set_message_map(&mut self) {
-        self.message_map.insert(M_LOGIN.code, &M_LOGIN);
-        self.message_map.insert(M_SC_STATUS.code, &M_SC_STATUS);
-    }
-
-    pub fn get_field_by_code(&mut self, code: &str) -> Option<&Field> {
-        // HashMap values are static refs.
-        // HashMap.get() returns Option<&&Field>.
-        // Unpack here with * cuz returning &&Field is weird
-        match self.field_map.get(code) {
-            Some(f) => Some(*f),
-            None => None
-        }
-    }
-
-    pub fn get_message_by_code(&self, code: &str) -> Option<&Message> {
-        match self.message_map.get(code) {
-            Some(m) => Some(*m),
-            None => None
-        }
-    }
-
-    pub fn escape_sip_text(text: &str) -> String {
-        text.replace("|", "")
-    }
-
-    pub fn sip_date_now() -> String {
-        Local::now().format(SIP_DATE_FORMAT).to_string()
-    }
-
-    pub fn sip_date(iso_date: &str) -> Result<String, Error> {
-        match DateTime::parse_from_rfc3339(iso_date) {
-            Ok(dt) => Ok(dt.format(SIP_DATE_FORMAT).to_string()),
-            Err(_) => Err(Error::DateFormatError),
-        }
-    }
 }
 
 pub const FF_DATE:                  FixedField = FixedField { length: 18, label: "transaction date" };
