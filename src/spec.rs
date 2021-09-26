@@ -19,6 +19,12 @@ pub struct Field {
     pub code: &'static str,
 }
 
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {}", self.code, self.label)
+    }
+}
+
 pub struct Message {
     pub code: &'static str,
     pub label: &'static str,
@@ -26,7 +32,6 @@ pub struct Message {
     pub required_fields: &'static [&'static Field],
     pub optional_fields: &'static [&'static Field],
 }
-
 
 // To make the below a little tidier
 type FF = FixedField;

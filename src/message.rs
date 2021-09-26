@@ -1,3 +1,4 @@
+use std::fmt;
 use super::spec;
 use super::util;
 use super::util::Util;
@@ -34,9 +35,11 @@ impl FixedField {
     pub fn to_sip(&self) -> String {
         Util::sip_string(&self.value)
     }
+}
 
-    pub fn to_str(&self) -> String {
-        format!("{}{: >35}", self.spec.label, self.value)
+impl fmt::Display for FixedField {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{: >35}", self.spec.label, self.value)
     }
 }
 
@@ -65,13 +68,14 @@ impl Field {
     pub fn to_sip(&self) -> String {
         self.spec.code.to_string() + &Util::sip_string(&self.value) + &String::from("|")
     }
-
-    pub fn to_str(&self) -> String {
-        let s = format!("{}{}", self.spec.code, self.spec.label);
-        format!("{: <35}{}", s, self.value)
-    }
 }
 
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = format!("{} {}", self.spec.code, self.spec.label);
+        write!(f, "{: <35}{}", s, self.value)
+    }
+}
 
 pub struct Message {
     spec: &'static spec::Message,
@@ -116,9 +120,17 @@ impl Message {
 
         s
     }
-
-    pub fn to_str(&self) -> String {
-        String::from("") // TODO
-    }
 }
 
+impl fmt::Display for Message {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {}\n", self.spec.code, self.spec.label);
+        for ff in self.fixed_fields.iter() {
+            write!(f, "{}\n", ff);
+        }
+        for field in self.fields.iter() {
+            write!(f, "{}\n", field);
+        }
+        write!(f, "")
+    }
+}

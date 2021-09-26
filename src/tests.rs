@@ -52,6 +52,8 @@ fn login_message() {
         ]
     );
 
+    println!("MESSAGE:\n{}", msg);
+
     assert_eq!(msg.to_sip(), "9300CNsip_username|COsip_password|");
 }
 
