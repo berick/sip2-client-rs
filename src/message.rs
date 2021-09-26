@@ -14,6 +14,12 @@ impl FixedField {
         }
     }
 
+    /// Creates a new FixedField IF the value provided is the correct length
+    pub fn new_checked(spec: &'static spec::FixedField, value: &str) -> Option<Self> {
+        if value.len() != spec.length.into() { return None; }
+        Some(Self::new(spec, value))
+    }
+
     pub fn spec(&self) -> &'static spec::FixedField {
         self.spec
     }
