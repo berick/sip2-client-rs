@@ -51,6 +51,14 @@ impl Util {
         }
     }
 
+    /// Clean up a string for inclusion in a SIP message
+    ///
+    /// ```
+    /// use sip2::util::Util;
+    /// let result = Util::sip_string("howdy|par|dner");
+    /// assert_eq!(result, "howdypardner");
+    /// ```
+    ///
     pub fn sip_string(text: &str) -> String {
         text.replace("|", "")
     }
@@ -59,10 +67,27 @@ impl Util {
         Local::now().format(SIP_DATE_FORMAT).to_string()
     }
 
+    /// Transltate an iso8601-ish to SIP format
+    ///
+    /// ```
+    /// use sip2::util::Util;
+    ///
+    /// let date_op = Util::sip_date("1996-12-19T16:39:57-08:00");
+    /// assert_eq!(date_op.is_ok(), true);
+    ///
+    /// let result = date_op.unwrap();
+    /// assert_eq!(result, "19961219    163957");
+    ///
+    /// let date_op2 = Util::sip_date("YARP!");
+    /// assert_eq!(date_op2.is_err(), true);
+    /// ```
     pub fn sip_date(iso_date: &str) -> Result<String, error::Error> {
         match DateTime::parse_from_rfc3339(iso_date) {
             Ok(dt) => Ok(dt.format(SIP_DATE_FORMAT).to_string()),
-            Err(_) => Err(error::Error::DateFormatError),
+            Err(s) => {
+                println!("{}", s);
+                Err(error::Error::DateFormatError)
+            }
         }
     }
 }

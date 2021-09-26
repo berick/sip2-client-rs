@@ -1,4 +1,5 @@
 use std::fmt;
+use super::error;
 use super::spec;
 use super::util;
 use super::util::Util;
@@ -10,18 +11,15 @@ pub struct FixedField {
 
 impl FixedField {
 
-    /// Use this new() when the length of the value is known to be correct
-    pub fn new(spec: &'static spec::FixedField, value: &str) -> Self {
-        FixedField {
-            spec,
-            value: value.to_string(),
+    pub fn new(spec: &'static spec::FixedField, value: &str) -> Result<Self, error::Error> {
+        if value.len() == spec.length.into() {
+            Ok(FixedField {
+                spec: spec,
+                value: value.to_string(),
+            })
+        } else {
+            Err(error::Error::FixedFieldLengthError)
         }
-    }
-
-    /// Use this when the length of the value cannot be anticipated at runtime.
-    pub fn new_checked(spec: &'static spec::FixedField, value: &str) -> Option<Self> {
-        if value.len() != spec.length.into() { return None; }
-        Some(Self::new(spec, value))
     }
 
     pub fn spec(&self) -> &'static spec::FixedField {
@@ -32,6 +30,15 @@ impl FixedField {
         &self.value
     }
 
+    /// Translate a FixedField into a string which can be inserted into
+    /// a SIP message.
+    ///
+    /// ```
+    /// use sip2::FixedField;
+    /// use sip2::spec;
+    /// let ff = FixedField::new(&spec::FF_MAX_PRINT_WIDTH, "999").unwrap();
+    /// assert_eq!(ff.to_sip(), "999");
+    /// ```
     pub fn to_sip(&self) -> String {
         Util::sip_string(&self.value)
     }

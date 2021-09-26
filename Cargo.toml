@@ -1,5 +1,5 @@
 [package]
-name = "sip2-mediator"
+name = "sip2"
 version = "0.1.0"
 authors = ["Bill Erickson <berickxx@gmail.com>"]
 edition = "2018"
