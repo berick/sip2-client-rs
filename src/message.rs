@@ -1,4 +1,6 @@
 use super::spec;
+use super::util;
+use super::util::Util;
 
 pub struct FixedField {
     spec: &'static spec::FixedField,
@@ -7,6 +9,7 @@ pub struct FixedField {
 
 impl FixedField {
 
+    /// Use this new() when the length of the value is known to be correct
     pub fn new(spec: &'static spec::FixedField, value: &str) -> Self {
         FixedField {
             spec,
@@ -14,7 +17,7 @@ impl FixedField {
         }
     }
 
-    /// Creates a new FixedField IF the value provided is the correct length
+    /// Use this when the length of the value cannot be anticipated at runtime.
     pub fn new_checked(spec: &'static spec::FixedField, value: &str) -> Option<Self> {
         if value.len() != spec.length.into() { return None; }
         Some(Self::new(spec, value))
@@ -29,11 +32,11 @@ impl FixedField {
     }
 
     pub fn to_sip(&self) -> String {
-        String::from("") // TODO
+        Util::sip_string(&self.value)
     }
 
     pub fn to_str(&self) -> String {
-        String::from("") // TODO
+        format!("{}{: >35}", self.spec.label, self.value)
     }
 }
 
@@ -60,11 +63,12 @@ impl Field {
     }
 
     pub fn to_sip(&self) -> String {
-        String::from("") // TODO
+        self.spec.code.to_string() + &Util::sip_string(&self.value) + &String::from("|")
     }
 
     pub fn to_str(&self) -> String {
-        String::from("") // TODO
+        let s = format!("{}{}", self.spec.code, self.spec.label);
+        format!("{: <35}{}", s, self.value)
     }
 }
 
@@ -100,7 +104,17 @@ impl Message {
     }
 
     pub fn to_sip(&self) -> String {
-        String::from("") // TODO
+        let mut s = self.spec.code.to_string();
+
+        for ff in self.fixed_fields.iter() {
+            s.push_str(&ff.to_sip());
+        }
+
+        for f in self.fields.iter() {
+            s.push_str(&f.to_sip());
+        }
+
+        s
     }
 
     pub fn to_str(&self) -> String {

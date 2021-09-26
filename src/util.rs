@@ -51,7 +51,7 @@ impl Util {
         }
     }
 
-    pub fn escape_sip_text(text: &str) -> String {
+    pub fn sip_string(text: &str) -> String {
         text.replace("|", "")
     }
 
