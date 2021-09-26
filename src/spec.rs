@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use chrono::{DateTime, Local};
-use super::Error;
+use super::error::Error;
 use std::fmt;
 
 pub const LINE_TERMINATOR: char = '\r';
@@ -24,13 +24,12 @@ pub struct Field {
 }
 
 pub struct Message {
-    code: &'static str,
-    label: &'static str,
-    fixed_fields: &'static [&'static FixedField],
-    required_fields: &'static [&'static Field],
-    optional_fields: &'static [&'static Field],
+    pub code: &'static str,
+    pub label: &'static str,
+    pub fixed_fields: &'static [&'static FixedField],
+    pub required_fields: &'static [&'static Field],
+    pub optional_fields: &'static [&'static Field],
 }
-
 
 pub struct Util {
     field_map: HashMap<&'static str, &'static Field>,
