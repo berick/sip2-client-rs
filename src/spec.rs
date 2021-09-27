@@ -86,7 +86,7 @@ impl Field {
             f if f == F_HOLD_ITEMS_LIMIT.code       => Some(&F_HOLD_ITEMS_LIMIT),
             f if f == F_OVERDUE_ITEMS_LIST.code     => Some(&F_OVERDUE_ITEMS_LIST),
             f if f == F_CHARGED_ITEMS_LIMIT.code    => Some(&F_CHARGED_ITEMS_LIMIT),
-            f if f == F_UNAVAILABLE_HOLD_ITEMS.code => Some(&F_UNAVAILABLE_HOLD_ITEMS),
+            f if f == F_UNAVAIL_HOLD_ITEMS.code     => Some(&F_UNAVAIL_HOLD_ITEMS),
             f if f == F_HOLD_QUEUE_LENGTH.code      => Some(&F_HOLD_QUEUE_LENGTH),
             f if f == F_FEE_IDENTIFIER.code         => Some(&F_FEE_IDENTIFIER),
             f if f == F_ITEM_PROPERTIES.code        => Some(&F_ITEM_PROPERTIES),
@@ -134,10 +134,16 @@ impl Message {
     pub fn get_from_code(code: &str) -> Option<&'static Message> {
 
         match code {
-            m if m == M_SC_STATUS.code  => Some(&M_SC_STATUS),
-            m if m == M_ACS_STATUS.code => Some(&M_ACS_STATUS),
-            m if m == M_LOGIN.code      => Some(&M_LOGIN),
-            m if m == M_LOGIN_RESP.code => Some(&M_LOGIN_RESP),
+            m if m == M_SC_STATUS.code          => Some(&M_SC_STATUS),
+            m if m == M_ACS_STATUS.code         => Some(&M_ACS_STATUS),
+            m if m == M_LOGIN.code              => Some(&M_LOGIN),
+            m if m == M_LOGIN_RESP.code         => Some(&M_LOGIN_RESP),
+            m if m == M_ITEM_INFO.code          => Some(&M_ITEM_INFO),
+            m if m == M_ITEM_INFO_RESP.code     => Some(&M_ITEM_INFO_RESP),
+            m if m == M_PATRON_INFO.code        => Some(&M_PATRON_INFO),
+            m if m == M_PATRON_INFO_RESP.code   => Some(&M_PATRON_INFO_RESP),
+            m if m == M_PATRON_STATUS.code      => Some(&M_PATRON_STATUS),
+            m if m == M_PATRON_STATUS_RESP.code => Some(&M_PATRON_STATUS_RESP),
             // TODO
             _ => None,
         }
@@ -169,7 +175,7 @@ pub const FF_OD_ITEMS_COUNT      : FF = FF { length: 4,  label: "overdue items c
 pub const FF_CH_ITEMS_COUNT      : FF = FF { length: 4,  label: "charged items count" };
 pub const FF_FINE_ITEMS_COUNT    : FF = FF { length: 4,  label: "fine items count" };
 pub const FF_RECALL_ITEMS_COUNT  : FF = FF { length: 4,  label: "recall items count" };
-pub const FF_UNAVAIL_ITEMS_COUNT : FF = FF { length: 4,  label: "unavail holds count" };
+pub const FF_UNAVAIL_HOLDS_COUNT : FF = FF { length: 4,  label: "unavail holds count" };
 pub const FF_RENEWAL_POLICY      : FF = FF { length: 1,  label: "sc renewal policy" };
 pub const FF_NO_BLOCK            : FF = FF { length: 1,  label: "no block" };
 pub const FF_NB_DUE_DATE         : FF = FF { length: 18, label: "nb due date" };
@@ -248,7 +254,7 @@ pub const F_HOLD_TYPE               : F = F { code: "BY", label: "hold type" };
 pub const F_HOLD_ITEMS_LIMIT        : F = F { code: "BZ", label: "hold items limit" };
 pub const F_OVERDUE_ITEMS_LIST      : F = F { code: "CA", label: "overdue items limit" };
 pub const F_CHARGED_ITEMS_LIMIT     : F = F { code: "CB", label: "charged items limit" };
-pub const F_UNAVAILABLE_HOLD_ITEMS  : F = F { code: "CD", label: "unavailable hold items" };
+pub const F_UNAVAIL_HOLD_ITEMS      : F = F { code: "CD", label: "unavailable hold items" };
 pub const F_HOLD_QUEUE_LENGTH       : F = F { code: "CF", label: "hold queue length" };
 pub const F_FEE_IDENTIFIER          : F = F { code: "CG", label: "fee identifier" };
 pub const F_ITEM_PROPERTIES         : F = F { code: "CH", label: "item properties" };
@@ -314,3 +320,178 @@ pub const M_LOGIN_RESP: Message = Message {
     fixed_fields: &[&FF_OK],
 };
 
+pub const M_ITEM_INFO: Message = Message {
+    code: "17",
+    label: "Item Information Request",
+    fixed_fields: &[&FF_DATE],
+};
+
+pub const M_ITEM_INFO_RESP: Message = Message {
+    code: "18",
+    label: "Item Information Response",
+    fixed_fields: &[
+        &FF_CIRCULATION_STATUS,
+        &FF_SECURITY_MARKER,
+        &FF_FEE_TYPE,
+        &FF_DATE,
+    ],
+};
+
+pub const M_PATRON_STATUS: Message = Message {
+    code: "23",
+    label: "Patron Status Request",
+    fixed_fields: &[
+        &FF_LANGUAGE,
+        &FF_DATE,
+    ],
+};
+
+pub const M_PATRON_STATUS_RESP: Message = Message {
+    code: "24",
+    label: "Patron Status Response",
+    fixed_fields: &[
+        &FF_PATRON_STATUS,
+        &FF_LANGUAGE,
+        &FF_DATE,
+    ],
+};
+
+pub const M_PATRON_INFO: Message = Message {
+    code: "63",
+    label: "Patron Information",
+    fixed_fields: &[
+        &FF_LANGUAGE,
+        &FF_DATE,
+        &FF_SUMMARY,
+    ],
+};
+
+pub const M_PATRON_INFO_RESP: Message = Message {
+    code: "64",
+    label: "Patron Information Response",
+    fixed_fields: &[
+        &FF_PATRON_STATUS,
+        &FF_LANGUAGE,
+        &FF_DATE,
+        &FF_HOLD_ITEMS_COUNT,
+        &FF_OD_ITEMS_COUNT,
+        &FF_CH_ITEMS_COUNT,
+        &FF_FINE_ITEMS_COUNT,
+        &FF_RECALL_ITEMS_COUNT,
+        &FF_UNAVAIL_HOLDS_COUNT,
+    ],
+};
+
+/*
+
+$MSpec::checkout = $STSM->new(
+    '11', $l->get('Checkout Request'), [
+        $FFSpec::sc_renewal_policy,
+        $FFSpec::no_block,
+        $FFSpec::date,
+        $FFSpec::nb_due_date
+    ]
+);
+
+
+$MSpec::checkout_resp = $STSM->new(
+    '12', $l->get('Checkout Response'), [
+        $FFSpec::ok,
+        $FFSpec::renewal_ok,
+        $FFSpec::magnetic_media,
+        $FFSpec::desensitize,
+        $FFSpec::date
+    ]
+);
+
+$MSpec::renew = $STSM->new(
+    '29', $l->get('Renew Request'), [
+        $FFSpec::third_party_allowed,
+        $FFSpec::no_block,
+        $FFSpec::date,
+        $FFSpec::nb_due_date
+    ]
+);
+
+$MSpec::renew_resp = $STSM->new(
+    '30', $l->get('Renew Response'), [
+        $FFSpec::ok,
+        $FFSpec::renewal_ok,
+        $FFSpec::magnetic_media,
+        $FFSpec::desensitize,
+        $FFSpec::date
+    ]
+);
+
+$MSpec::renew_all = $STSM->new(
+    '65', $l->get('Renew All Request'), [
+        $FFSpec::date
+    ]
+);
+
+$MSpec::renew_all_resp = $STSM->new(
+    '66', $l->get('Renew All Response'), [
+        $FFSpec::ok,
+        $FFSpec::renewed_count,
+        $FFSpec::unrenewed_count,
+        $FFSpec::date
+    ]
+);
+
+$MSpec::checkin = $STSM->new(
+    '09', $l->get('Checkin Request'), [
+        $FFSpec::no_block,
+        $FFSpec::date,
+        $FFSpec::return_date
+    ]
+);
+
+$MSpec::checkin_resp = $STSM->new(
+    '10', $l->get('Checkin Response'), [
+        $FFSpec::ok,
+        $FFSpec::resensitize,
+        $FFSpec::magnetic_media,
+        $FFSpec::alert,
+        $FFSpec::date
+    ]
+);
+
+$MSpec::hold = $STSM->new(
+    '15', $l->get('Hold Request'), [
+        $FFSpec::hold_mode,
+        $FFSpec::date,
+    ]
+);
+
+$MSpec::hold = $STSM->new(
+    '16', $l->get('Hold Response'), [
+        $FFSpec::ok,
+        $FFSpec::hold_avail,
+        $FFSpec::date,
+    ]
+);
+
+
+$MSpec::fee_paid = $STSM->new(
+    '37', $l->get('Fee Paid'), [
+        $FFSpec::date,
+        $FFSpec::fee_type,
+        $FFSpec::payment_type,
+        $FFSpec::currency_type
+    ]
+);
+
+$MSpec::fee_paid_resp = $STSM->new(
+    '38', $l->get('Fee Paid Response'), [
+        $FFSpec::payment_accepted,
+        $FFSpec::date
+    ]
+);
+
+# Custom "end session" message for communicating with the HTTP backend.
+# This differs from "End Patron Session" (35) message in that it's not
+# about a patron but about a SIP client session, which can involve
+# many patrons (or none).  There is no corresponding response message.
+$MSpec::end_session = $STSM->new('XS', $l->get('End Session'), []);
+$MSpec::end_session_resp = $STSM->new('XT', $l->get('End Session Response'), []);
+*/
