@@ -4,9 +4,6 @@ use std::fmt;
 use super::spec;
 use super::error;
 
-pub const LINE_TERMINATOR: char = '\r';
-pub const SIP_DATE_FORMAT: &str = "%Y%m%d    %H%M%S";
-pub const STRING_COLUMN_PAD: u8 = 32; // for printing/debugging
 
 
 /// Clean up a string for inclusion in a SIP message
@@ -22,7 +19,7 @@ pub fn sip_string(text: &str) -> String {
 }
 
 pub fn sip_date_now() -> String {
-    Local::now().format(SIP_DATE_FORMAT).to_string()
+    Local::now().format(spec::SIP_DATE_FORMAT).to_string()
 }
 
 /// Transltate an iso8601-ish to SIP format
@@ -41,7 +38,7 @@ pub fn sip_date_now() -> String {
 /// ```
 pub fn sip_date(iso_date: &str) -> Result<String, error::Error> {
     match DateTime::parse_from_rfc3339(iso_date) {
-        Ok(dt) => Ok(dt.format(SIP_DATE_FORMAT).to_string()),
+        Ok(dt) => Ok(dt.format(spec::SIP_DATE_FORMAT).to_string()),
         Err(s) => Err(error::Error::DateFormatError),
     }
 }
