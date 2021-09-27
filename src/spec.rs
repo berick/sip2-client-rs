@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use super::error::Error;
 use std::fmt;
 
@@ -13,6 +14,28 @@ pub struct FixedField {
 impl fmt::Display for FixedField {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} ({})", self.label, self.length)
+    }
+}
+
+pub struct FixedField2 {
+    pub label: String,
+    pub length: usize,
+}
+
+impl fmt::Display for FixedField2 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} ({})", self.label, self.length)
+    }
+}
+
+pub struct Field2 {
+    pub label: String,
+    pub code: String,
+}
+
+impl fmt::Display for Field2 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {}", self.code, self.label)
     }
 }
 
@@ -115,6 +138,12 @@ impl Field {
             _ => None
         }
     }
+}
+
+pub struct Message2 {
+    pub code: String,
+    pub label: String,
+    pub fixed_fields: Vec<&FixedField2>,
 }
 
 pub struct Message {
@@ -535,4 +564,205 @@ pub const M_FEE_PAID_RESP: Message = Message {
 
 // NOTE: when adding new message types, be sure to also add the new
 // message to Message::from_code()
+
+pub struct Spec {
+    fixed_fields: HashMap<String, FixedField2>,
+    fields: HashMap<String, Field2>,
+    messages: HashMap<String, Message2>
+}
+
+// Local shortcut for to_string() to make the pile-o-spec's a little
+// bit shorter.
+fn s(st: &str) -> String { st.to_string() }
+
+impl Spec {
+
+    pub fn new() -> Self {
+        let mut spec = Spec {
+            fixed_fields: HashMap::new(),
+            fields: HashMap::new(),
+            messages: HashMap::new(),
+        };
+
+        spec.set_fixed_fields();
+        spec.set_fields();
+        spec.set_messages();
+        spec
+    }
+
+    fn set_fixed_fields(&mut self) {
+
+        let ff = &mut self.fixed_fields;    // local shorthand
+        type FF = FixedField2;              // local shorthand
+
+        ff.insert(s("date")                , FF { length: 18, label: s("transaction date") });
+        ff.insert(s("ok")                  , FF { length: 1,  label: s("ok") });
+        ff.insert(s("uid_algo")            , FF { length: 1,  label: s("uid algorithm") });
+        ff.insert(s("pwd_algo")            , FF { length: 1,  label: s("pwd algorithm") });
+        ff.insert(s("fee_type")            , FF { length: 2,  label: s("fee type") });
+        ff.insert(s("payment_type")        , FF { length: 2,  label: s("payment type") });
+        ff.insert(s("currency")            , FF { length: 3,  label: s("currency type") });
+        ff.insert(s("payment_accepted")    , FF { length: 1,  label: s("payment accepted") });
+        ff.insert(s("circulation_status")  , FF { length: 2,  label: s("circulation status") });
+        ff.insert(s("security_marker")     , FF { length: 2,  label: s("security marker") });
+        ff.insert(s("language")            , FF { length: 3,  label: s("language") });
+        ff.insert(s("patron_status")       , FF { length: 14, label: s("patron status") });
+        ff.insert(s("summary")             , FF { length: 10, label: s("summary") });
+        ff.insert(s("hold_items_count")    , FF { length: 4,  label: s("hold items count") });
+        ff.insert(s("od_items_count")      , FF { length: 4,  label: s("overdue items count") });
+        ff.insert(s("ch_items_count")      , FF { length: 4,  label: s("charged items count") });
+        ff.insert(s("fine_items_count")    , FF { length: 4,  label: s("fine items count") });
+        ff.insert(s("recall_items_count")  , FF { length: 4,  label: s("recall items count") });
+        ff.insert(s("unavail_holds_count") , FF { length: 4,  label: s("unavail holds count") });
+        ff.insert(s("sc_renewal_policy")   , FF { length: 1,  label: s("sc renewal policy") });
+        ff.insert(s("no_block")            , FF { length: 1,  label: s("no block") });
+        ff.insert(s("nb_due_date")         , FF { length: 18, label: s("nb due date") });
+        ff.insert(s("status_code")         , FF { length: 1,  label: s("status code") });
+        ff.insert(s("max_print_width")     , FF { length: 3,  label: s("max print width") });
+        ff.insert(s("protocol_version")    , FF { length: 4,  label: s("protocol version") });
+        ff.insert(s("renew_ok")            , FF { length: 1,  label: s("renewal ok") });
+        ff.insert(s("magnetic_media")      , FF { length: 1,  label: s("magnetic media") });
+        ff.insert(s("desensitize")         , FF { length: 1,  label: s("desensitize") });
+        ff.insert(s("resensitize")         , FF { length: 1,  label: s("resensitize") });
+        ff.insert(s("return_date")         , FF { length: 18, label: s("return date") });
+        ff.insert(s("alert")               , FF { length: 1,  label: s("alert") });
+        ff.insert(s("online_status")       , FF { length: 1,  label: s("on-line status") });
+        ff.insert(s("checkin_ok")          , FF { length: 1,  label: s("checkin ok") });
+        ff.insert(s("checkout_ok")         , FF { length: 1,  label: s("checkout ok") });
+        ff.insert(s("acs_renewal_policy")  , FF { length: 1,  label: s("acs renewal policy") });
+        ff.insert(s("status_update_ok")    , FF { length: 1,  label: s("status update ok") });
+        ff.insert(s("offline_ok")          , FF { length: 1,  label: s("offline ok") });
+        ff.insert(s("timeout_period")      , FF { length: 3,  label: s("timeout period") });
+        ff.insert(s("retries_allowed")     , FF { length: 3,  label: s("retries allowed") });
+        ff.insert(s("datetime_sync")       , FF { length: 18, label: s("date/time sync") });
+        ff.insert(s("third_party_allowed") , FF { length: 1,  label: s("third party allowed") });
+        ff.insert(s("renewed_count")       , FF { length: 4,  label: s("renewed count") });
+        ff.insert(s("unrenewed_count")     , FF { length: 4,  label: s("unrenewed count") });
+        ff.insert(s("hold_mode")           , FF { length: 1,  label: s("hold mode") });
+        ff.insert(s("hold_available")      , FF { length: 1,  label: s("hold available") });
+    }
+
+    pub fn fixed_field_by_code(&self, code: &str) -> Option<&FixedField2> {
+        self.fixed_fields.get(code)
+    }
+
+    fn set_fields(&mut self) {
+
+        let f = &mut self.fields;   // local shorthand
+        type F = Field2;            // local shorthand
+
+        f.insert(s("login_uid")               , F { code: s("CN"), label: s("login user id") });
+        f.insert(s("login_pwd")               , F { code: s("CO"), label: s("login password") });
+        f.insert(s("patron_id")               , F { code: s("AA"), label: s("patron identifier") });
+        f.insert(s("patron_ident")            , F { code: s("AA"), label: s("patron identifier") });
+        f.insert(s("item_ident")              , F { code: s("AB"), label: s("item identifier") });
+        f.insert(s("terminal_pwd")            , F { code: s("AC"), label: s("terminal password") });
+        f.insert(s("patron_pwd")              , F { code: s("AD"), label: s("patron password") });
+        f.insert(s("personal_name")           , F { code: s("AE"), label: s("personal name") });
+        f.insert(s("screen_msg")              , F { code: s("AF"), label: s("screen message") });
+        f.insert(s("print_line")              , F { code: s("AG"), label: s("print line") });
+        f.insert(s("due_date")                , F { code: s("AH"), label: s("due date") });
+        f.insert(s("title_ident")             , F { code: s("AJ"), label: s("title identifier") });
+        f.insert(s("blocked_card_msg")        , F { code: s("AL"), label: s("blocked card msg") });
+        f.insert(s("library_name")            , F { code: s("AM"), label: s("library name") });
+        f.insert(s("terminal_location")       , F { code: s("AN"), label: s("terminal location") });
+        f.insert(s("institution_id")          , F { code: s("AO"), label: s("institution id") });
+        f.insert(s("current_location")        , F { code: s("AP"), label: s("current location") });
+        f.insert(s("permanent_location")      , F { code: s("AQ"), label: s("permanent location") });
+        f.insert(s("hold_items")              , F { code: s("AS"), label: s("hold items") });
+        f.insert(s("overdue_items")           , F { code: s("AT"), label: s("overdue items") });
+        f.insert(s("charged_items")           , F { code: s("AU"), label: s("charged items") });
+        f.insert(s("fine_items")              , F { code: s("AV"), label: s("fine items") });
+        f.insert(s("sequence_number")         , F { code: s("AY"), label: s("sequence number") });
+        f.insert(s("checksum")                , F { code: s("AZ"), label: s("checksum") });
+        f.insert(s("home_address")            , F { code: s("BD"), label: s("home address") });
+        f.insert(s("email_address")           , F { code: s("BE"), label: s("e-mail address") });
+        f.insert(s("home_phone")              , F { code: s("BF"), label: s("home phone number") });
+        f.insert(s("owner")                   , F { code: s("BG"), label: s("owner") });
+        f.insert(s("currency")                , F { code: s("BH"), label: s("currency type") });
+        f.insert(s("cancel")                  , F { code: s("BI"), label: s("cancel") });
+        f.insert(s("transaction_id")          , F { code: s("BK"), label: s("transaction id") });
+        f.insert(s("valid_patron")            , F { code: s("BL"), label: s("valid patron") });
+        f.insert(s("renewed_items")           , F { code: s("BM"), label: s("renewed items") });
+        f.insert(s("unrenewed_items")         , F { code: s("BN"), label: s("unrenewed items") });
+        f.insert(s("fee_acknowleged")         , F { code: s("BO"), label: s("fee acknowledged") });
+        f.insert(s("start_item")              , F { code: s("BP"), label: s("start item") });
+        f.insert(s("end_item")                , F { code: s("BQ"), label: s("end item") });
+        f.insert(s("queue_position")          , F { code: s("BR"), label: s("queue position") });
+        f.insert(s("pickup_location")         , F { code: s("BS"), label: s("pickup location") });
+        f.insert(s("recall_items")            , F { code: s("BU"), label: s("recall items") });
+        f.insert(s("fee_type")                , F { code: s("BT"), label: s("fee type") });
+        f.insert(s("fee_limit")               , F { code: s("CC"), label: s("fee limit") });
+        f.insert(s("fee_amount")              , F { code: s("BV"), label: s("fee amount") });
+        f.insert(s("expire_date")             , F { code: s("BW"), label: s("expiration date") });
+        f.insert(s("supported_messages")      , F { code: s("BX"), label: s("supported messages") });
+        f.insert(s("hold_type")               , F { code: s("BY"), label: s("hold type") });
+        f.insert(s("hold_items_limit")        , F { code: s("BZ"), label: s("hold items limit") });
+        f.insert(s("overdue_items_list")      , F { code: s("CA"), label: s("overdue items limit") });
+        f.insert(s("charged_items_limit")     , F { code: s("CB"), label: s("charged items limit") });
+        f.insert(s("unavail_hold_items")      , F { code: s("CD"), label: s("unavailable hold items") });
+        f.insert(s("hold_queue_length")       , F { code: s("CF"), label: s("hold queue length") });
+        f.insert(s("fee_identifier")          , F { code: s("CG"), label: s("fee identifier") });
+        f.insert(s("item_properties")         , F { code: s("CH"), label: s("item properties") });
+        f.insert(s("security_inhibit")        , F { code: s("CI"), label: s("security inhibit") });
+        f.insert(s("recall_date")             , F { code: s("CJ"), label: s("recall date") });
+        f.insert(s("media_type")              , F { code: s("CK"), label: s("media type") });
+        f.insert(s("sort_bin")                , F { code: s("CL"), label: s("sort bin") });
+        f.insert(s("hold_pickup_date")        , F { code: s("CM"), label: s("hold pickup date") });
+        f.insert(s("login_user_id")           , F { code: s("CN"), label: s("login user id") });
+        f.insert(s("location_code")           , F { code: s("CP"), label: s("location code") });
+        f.insert(s("valid_patron_pwd")        , F { code: s("CQ"), label: s("valid patron password") });
+        f.insert(s("inet_profile")            , F { code: s("PI"), label: s("patron internet profile") });
+        f.insert(s("call_number")             , F { code: s("CS"), label: s("call number") });
+        f.insert(s("collection_code")         , F { code: s("CR"), label: s("collection code") });
+        f.insert(s("alert_type")              , F { code: s("CV"), label: s("alert type") });
+        f.insert(s("hold_patron_id")          , F { code: s("CY"), label: s("hold patron id") });
+        f.insert(s("hold_patron_name")        , F { code: s("DA"), label: s("hold patron name") });
+        f.insert(s("dest_location")           , F { code: s("CT"), label: s("destination location") });
+
+        // Envisionware terminal Extensions
+        f.insert(s("patron_expire_date")      , F { code: s("PA"), label: s("patron expire date") });
+        f.insert(s("patron_dob")              , F { code: s("PB"), label: s("patron birth date") });
+        f.insert(s("patron_class")            , F { code: s("PC"), label: s("patron class") });
+        f.insert(s("register_login")          , F { code: s("OR"), label: s("register login") });
+        f.insert(s("check_number")            , F { code: s("RN"), label: s("check number") });
+    }
+
+    pub fn field_by_code(&self, code: &str) -> Option<&Field2> {
+        for field in self.fields.values() {
+            if field.code == code {
+                return Some(field);
+            }
+        }
+        None
+    }
+
+    fn set_messages(&mut self) {
+
+        let m = &mut self.messages; // local shorthand
+        type M = Message2;          // local shorthand
+
+        let msg = M {
+            code: s("99"),
+            label: s("SC Status"),
+            fixed_fields: Vec::new()
+        };
+
+        msg.fixed_fields.push(self.fixed_field_by_code("status_code").unwrap());
+
+        m.insert(s("sc_status"), msg);
+    }
+
+/*
+pub const M_SC_STATUS: Message = Message {
+    code: "99",
+    label: "SC Status",
+    fixed_fields: &[
+        &FF_STATUS_CODE,
+        &FF_MAX_PRINT_WIDTH,
+        &FF_PROTOCOL_VERSION
+    ],
+};
+*/
+}
 
