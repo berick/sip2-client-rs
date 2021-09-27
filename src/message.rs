@@ -1,5 +1,6 @@
 use std::fmt;
-use super::error;
+use log::{error, warn};
+use super::error::Error;
 use super::spec;
 use super::util;
 
@@ -10,14 +11,14 @@ pub struct FixedField {
 
 impl FixedField {
 
-    pub fn new(spec: &'static spec::FixedField, value: &str) -> Result<Self, error::Error> {
+    pub fn new(spec: &'static spec::FixedField, value: &str) -> Result<Self, Error> {
         if value.len() == spec.length.into() {
             Ok(FixedField {
                 spec: spec,
                 value: value.to_string(),
             })
         } else {
-            Err(error::Error::FixedFieldLengthError)
+            Err(Error::FixedFieldLengthError)
         }
     }
 
@@ -153,6 +154,70 @@ impl Message {
 
         s
     }
+
+    /// Turns a SIP string into a Message
+    ///
+    /// Assumes the trailing message terminator character has been removed.
+    pub fn from_sip(text: &str) -> Result<Message, Error> {
+
+        let msg_spec = match spec::Message::from_code(&text[0..2]) {
+            Some(m) => m,
+            None => {
+                error!("Unknown message type: {}", &text[0..2]);
+                return Err(Error::MessageFormatError);
+            }
+        };
+
+        let mut msg = Message {
+            spec: msg_spec,
+            fixed_fields: vec![],
+            fields: vec![],
+        };
+
+        // Remove the message code
+        let mut msg_text = &text[2..];
+
+        for ff_spec in msg_spec.fixed_fields.iter() {
+
+            if msg_text.len() < ff_spec.length {
+                warn!("Message has invalid fixed field: {} : {}", ff_spec.label, msg_text);
+                return Err(Error::MessageFormatError);
+            }
+
+            let value = &msg_text[0..ff_spec.length];
+            msg_text = &msg_text[ff_spec.length..];
+
+            // unwrap() is OK because we have confirmed the value has
+            // the correct length above.
+            msg.fixed_fields.push(FixedField::new(ff_spec, value).unwrap());
+        }
+
+        // Not all messages have fixed fields or fields
+        if msg_text.len() == 0 { return Ok(msg); }
+
+        /*
+        for part in msg_text.split("|").iter() {
+
+            let mut f_spec = match spec::Field::from_code(&part[0..2]) {
+                Some(fs) => fs,
+                None =>
+        */
+
+        /*
+
+    for my $part (@parts) {
+        last unless $part;
+        my $fspec = SIP2Mediator::Spec::Field->find_by_code(substr($part, 0, 2));
+        push(@{$msg->fields}, SIP2Mediator::Field->new($fspec, substr($part, 2)));
+    }
+
+    return $msg;
+*/
+
+
+        return Err(Error::MessageFormatError);
+    }
+
 }
 
 impl fmt::Display for Message {

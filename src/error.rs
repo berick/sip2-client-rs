@@ -5,7 +5,8 @@ use std::fmt;
 pub enum Error {
     DateFormatError,
     FixedFieldLengthError,
-    NetworkError(String),
+    MessageFormatError,
+    NetworkError,
 }
 
 use self::Error::*;
@@ -24,7 +25,8 @@ impl fmt::Display for Error {
         match *self {
             DateFormatError => write!(f, "date format error"),
             FixedFieldLengthError => write!(f, "fixed field length error"),
-            NetworkError(ref s) => write!(f, "network error: {}", s),
+            NetworkError => write!(f, "network error"),
+            MessageFormatError => write!(f, "sip message format error"),
         }
     }
 }

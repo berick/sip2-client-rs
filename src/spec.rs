@@ -7,7 +7,7 @@ pub const SIP_DATE_FORMAT: &str = "%Y%m%d    %H%M%S";
 
 pub struct FixedField {
     pub label: &'static str,
-    pub length: u8
+    pub length: usize,
 }
 
 impl fmt::Display for FixedField {
