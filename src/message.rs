@@ -2,7 +2,6 @@ use std::fmt;
 use super::error;
 use super::spec;
 use super::util;
-use super::util::Util;
 
 pub struct FixedField {
     spec: &'static spec::FixedField,
@@ -40,7 +39,7 @@ impl FixedField {
     /// assert_eq!(ff.to_sip(), "999");
     /// ```
     pub fn to_sip(&self) -> String {
-        Util::sip_string(&self.value)
+        util::sip_string(&self.value)
     }
 }
 
@@ -72,8 +71,16 @@ impl Field {
         &self.value
     }
 
+    /// Create a SIP string from a field
+    ///
+    /// ```
+    /// use sip2::Field;
+    /// use sip2::spec;
+    /// let f = Field::new(&spec::F_LOGIN_UID, "sip_username");
+    /// assert_eq!(f.to_sip(), "CNsip_username|");
+    /// ```
     pub fn to_sip(&self) -> String {
-        self.spec.code.to_string() + &Util::sip_string(&self.value) + &String::from("|")
+        self.spec.code.to_string() + &util::sip_string(&self.value) + &String::from("|")
     }
 }
 
@@ -113,6 +120,26 @@ impl Message {
         &self.fixed_fields
     }
 
+    /// Create a SIP string of a message.
+    ///
+    /// ```
+    /// use sip2::{Message, Field, FixedField};
+    /// use sip2::spec;
+    ///
+    /// let msg = Message::new(
+    ///     &spec::M_LOGIN,
+    ///     vec![
+    ///         FixedField::new(&spec::FF_UID_ALGO, "0").unwrap(),
+    ///         FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
+    ///     ],
+    ///     vec![
+    ///         Field::new(&spec::F_LOGIN_UID, "sip_username"),
+    ///         Field::new(&spec::F_LOGIN_PWD, "sip_password"),
+    ///     ]
+    /// );
+    ///
+    /// assert_eq!(msg.to_sip(), "9300CNsip_username|COsip_password|");
+    /// ```
     pub fn to_sip(&self) -> String {
         let mut s = self.spec.code.to_string();
 

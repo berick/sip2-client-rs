@@ -138,6 +138,7 @@ impl Message {
         match code {
             m if m == M_SC_STATUS.code  => Some(&M_SC_STATUS),
             m if m == M_LOGIN.code      => Some(&M_LOGIN),
+            // TODO
             _ => None,
         }
     }
