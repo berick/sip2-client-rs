@@ -1,7 +1,7 @@
 use std::str;
 use std::io::prelude::*;
 use std::net::{Shutdown, TcpStream};
-use log::{info, error};
+use log::{debug, info, error};
 use super::{Message, Field, FixedField};
 use super::error::Error;
 use super::spec;
@@ -16,6 +16,15 @@ pub struct Client {
 
 impl Client {
 
+    /// Creates a new SIP client and opens the TCP connection to the server
+    ///
+    /// * `sip_host` - SIP server host/ip and port
+    ///   ** e.g. "127.0.0.1:6001"
+    ///
+    /// ```
+    /// use sip2::Client;
+    /// assert_eq!(Client::new("JUNK0+..-*z$@").is_err(), true);
+    /// ```
     pub fn new(sip_host: &str) -> Result<Self, Error>  {
 
         match TcpStream::connect(sip_host) {
@@ -47,6 +56,8 @@ impl Client {
 
     pub fn send(&mut self, msg: &Message) -> Result<(), Error> {
         let msg_sip = msg.to_sip();
+
+        debug!("OUTBOUND: {}", msg_sip);
 
         match self.tcp_stream.write(&msg_sip.as_bytes()) {
             Ok(_) => Ok(()),
@@ -87,6 +98,8 @@ impl Client {
 
             if num_bytes < READ_BUFSIZE { break; }
         }
+
+        debug!("INBOUND: {}", text);
 
         Message::from_sip(&text)
     }
