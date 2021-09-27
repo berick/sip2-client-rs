@@ -32,10 +32,10 @@ impl Field {
     /// ```
     /// use sip2::spec;
     /// let f = &spec::F_LOGIN_UID;
-    /// let f2 = spec::Field::get_from_code(f.code).unwrap();
+    /// let f2 = spec::Field::from_code(f.code).unwrap();
     /// assert_eq!(f2.code, f.code);
     /// ```
-    pub fn get_from_code(code: &str) -> Option<&'static Field> {
+    pub fn from_code(code: &str) -> Option<&'static Field> {
         match code {
             f if f == F_LOGIN_UID.code              => Some(&F_LOGIN_UID),
             f if f == F_LOGIN_PWD.code              => Some(&F_LOGIN_PWD),
@@ -128,10 +128,10 @@ impl Message {
     /// ```
     /// use sip2::spec;
     /// let msg = &spec::M_LOGIN;
-    /// let msg2 = spec::Message::get_from_code(&spec::M_LOGIN.code).unwrap();
+    /// let msg2 = spec::Message::from_code(&spec::M_LOGIN.code).unwrap();
     /// assert_eq!(msg2.code, msg.code);
     /// ```
-    pub fn get_from_code(code: &str) -> Option<&'static Message> {
+    pub fn from_code(code: &str) -> Option<&'static Message> {
 
         match code {
             m if m == M_SC_STATUS.code          => Some(&M_SC_STATUS),
@@ -140,22 +140,32 @@ impl Message {
             m if m == M_LOGIN_RESP.code         => Some(&M_LOGIN_RESP),
             m if m == M_ITEM_INFO.code          => Some(&M_ITEM_INFO),
             m if m == M_ITEM_INFO_RESP.code     => Some(&M_ITEM_INFO_RESP),
-            m if m == M_PATRON_INFO.code        => Some(&M_PATRON_INFO),
-            m if m == M_PATRON_INFO_RESP.code   => Some(&M_PATRON_INFO_RESP),
             m if m == M_PATRON_STATUS.code      => Some(&M_PATRON_STATUS),
             m if m == M_PATRON_STATUS_RESP.code => Some(&M_PATRON_STATUS_RESP),
-            // TODO
+            m if m == M_PATRON_INFO.code        => Some(&M_PATRON_INFO),
+            m if m == M_PATRON_INFO_RESP.code   => Some(&M_PATRON_INFO_RESP),
+            m if m == M_CHECKOUT.code           => Some(&M_CHECKOUT),
+            m if m == M_CHECKOUT_RESP.code      => Some(&M_CHECKOUT_RESP),
+            m if m == M_RENEW.code              => Some(&M_RENEW),
+            m if m == M_RENEW_RESP.code         => Some(&M_RENEW_RESP),
+            m if m == M_RENEW_ALL.code          => Some(&M_RENEW_ALL),
+            m if m == M_RENEW_ALL_RESP.code     => Some(&M_RENEW_ALL_RESP),
+            m if m == M_CHECKIN.code            => Some(&M_CHECKIN),
+            m if m == M_CHECKIN_RESP.code       => Some(&M_CHECKIN_RESP),
+            m if m == M_HOLD.code               => Some(&M_HOLD),
+            m if m == M_HOLD_RESP.code          => Some(&M_HOLD_RESP),
+            m if m == M_FEE_PAID.code           => Some(&M_FEE_PAID),
+            m if m == M_FEE_PAID_RESP.code      => Some(&M_FEE_PAID_RESP),
             _ => None,
         }
     }
 }
 
 // -------------------------------------------------------------------------
-// FixedField, Field, and Message Constants
+// Fixed Fields
 // -------------------------------------------------------------------------
 
-// To make the below a little tidier
-type FF = FixedField;
+type FF = FixedField; // local shorthand
 
 pub const FF_DATE                : FF = FF { length: 18, label: "transaction date" };
 pub const FF_OK                  : FF = FF { length: 1,  label: "ok" };
@@ -176,7 +186,7 @@ pub const FF_CH_ITEMS_COUNT      : FF = FF { length: 4,  label: "charged items c
 pub const FF_FINE_ITEMS_COUNT    : FF = FF { length: 4,  label: "fine items count" };
 pub const FF_RECALL_ITEMS_COUNT  : FF = FF { length: 4,  label: "recall items count" };
 pub const FF_UNAVAIL_HOLDS_COUNT : FF = FF { length: 4,  label: "unavail holds count" };
-pub const FF_RENEWAL_POLICY      : FF = FF { length: 1,  label: "sc renewal policy" };
+pub const FF_SC_RENEWAL_POLICY   : FF = FF { length: 1,  label: "sc renewal policy" };
 pub const FF_NO_BLOCK            : FF = FF { length: 1,  label: "no block" };
 pub const FF_NB_DUE_DATE         : FF = FF { length: 18, label: "nb due date" };
 pub const FF_STATUS_CODE         : FF = FF { length: 1,  label: "status code" };
@@ -203,7 +213,11 @@ pub const FF_UNRENEWED_COUNT     : FF = FF { length: 4,  label: "unrenewed count
 pub const FF_HOLD_MODE           : FF = FF { length: 1,  label: "hold mode" };
 pub const FF_HOLD_AVAILABLE      : FF = FF { length: 1,  label: "hold available" };
 
-type F = Field;
+// -------------------------------------------------------------------------
+// Fields
+// -------------------------------------------------------------------------
+
+type F = Field; // local shorthand
 
 pub const F_LOGIN_UID               : F = F { code: "CN", label: "login user id" };
 pub const F_LOGIN_PWD               : F = F { code: "CO", label: "login password" };
@@ -280,6 +294,15 @@ pub const F_PATRON_DOB              : F = F { code: "PB", label: "patron birth d
 pub const F_PATRON_CLASS            : F = F { code: "PC", label: "patron class" };
 pub const F_REGISTER_LOGIN          : F = F { code: "OR", label: "register login" };
 pub const F_CHECK_NUMBER            : F = F { code: "RN", label: "check number" };
+
+// NOTE: when adding new fields, be sure to also add the new
+// to Field::from_code()
+
+// -------------------------------------------------------------------------
+// Messages
+// -------------------------------------------------------------------------
+
+pub const EMPTY: &[&FixedField; 0] = &[];
 
 pub const M_SC_STATUS: Message = Message {
     code: "99",
@@ -382,116 +405,132 @@ pub const M_PATRON_INFO_RESP: Message = Message {
     ],
 };
 
-/*
+pub const M_CHECKOUT: Message = Message {
+    code: "11",
+    label: "Checkout Request",
+    fixed_fields: &[
+        &FF_SC_RENEWAL_POLICY,
+        &FF_NO_BLOCK,
+        &FF_DATE,
+        &FF_NB_DUE_DATE,
+    ],
+};
 
-$MSpec::checkout = $STSM->new(
-    '11', $l->get('Checkout Request'), [
-        $FFSpec::sc_renewal_policy,
-        $FFSpec::no_block,
-        $FFSpec::date,
-        $FFSpec::nb_due_date
+pub const M_CHECKOUT_RESP: Message = Message {
+    code: "12",
+    label: "Checkout Response",
+    fixed_fields: &[
+        &FF_OK,
+        &FF_RENEW_OK,
+        &FF_MAGNETIC_MEDIA,
+        &FF_DESENSITIZE,
+        &FF_DATE,
+    ],
+};
+
+pub const M_RENEW: Message = Message {
+    code: "29",
+    label: "Renew Request",
+    fixed_fields: &[
+        &FF_THIRD_PARTY_ALLOWED,
+        &FF_NO_BLOCK,
+        &FF_DATE,
+        &FF_NB_DUE_DATE,
+    ],
+};
+
+pub const M_RENEW_RESP: Message = Message {
+    code: "12",
+    label: "Checkout Response",
+    fixed_fields: &[
+        &FF_OK,
+        &FF_RENEW_OK,
+        &FF_MAGNETIC_MEDIA,
+        &FF_DESENSITIZE,
+        &FF_DATE,
+    ],
+};
+
+pub const M_RENEW_ALL: Message = Message {
+    code: "65",
+    label: "Renew All Request",
+    fixed_fields: &[&FF_DATE],
+};
+
+pub const M_RENEW_ALL_RESP: Message = Message {
+    code: "66",
+    label: "Renew All Response",
+    fixed_fields: &[
+        &FF_OK,
+        &FF_RENEWED_COUNT,
+        &FF_UNRENEWED_COUNT,
+        &FF_DATE,
+    ],
+};
+
+pub const M_CHECKIN: Message = Message {
+    code: "09",
+    label: "Checkin Request",
+    fixed_fields: &[
+        &FF_NO_BLOCK,
+        &FF_DATE,
+        &FF_RETURN_DATE
     ]
-);
+};
 
-
-$MSpec::checkout_resp = $STSM->new(
-    '12', $l->get('Checkout Response'), [
-        $FFSpec::ok,
-        $FFSpec::renewal_ok,
-        $FFSpec::magnetic_media,
-        $FFSpec::desensitize,
-        $FFSpec::date
+pub const M_CHECKIN_RESP: Message = Message {
+    code: "10",
+    label: "Checkin Response",
+    fixed_fields: &[
+        &FF_OK,
+        &FF_RESENSITIZE,
+        &FF_MAGNETIC_MEDIA,
+        &FF_ALERT,
+        &FF_DATE
     ]
-);
+};
 
-$MSpec::renew = $STSM->new(
-    '29', $l->get('Renew Request'), [
-        $FFSpec::third_party_allowed,
-        $FFSpec::no_block,
-        $FFSpec::date,
-        $FFSpec::nb_due_date
+pub const M_HOLD: Message = Message {
+    code: "15",
+    label: "Hold Request",
+    fixed_fields: &[
+        &FF_HOLD_MODE,
+        &FF_DATE,
     ]
-);
+};
 
-$MSpec::renew_resp = $STSM->new(
-    '30', $l->get('Renew Response'), [
-        $FFSpec::ok,
-        $FFSpec::renewal_ok,
-        $FFSpec::magnetic_media,
-        $FFSpec::desensitize,
-        $FFSpec::date
+pub const M_HOLD_RESP: Message = Message {
+    code: "16",
+    label: "Hold Response",
+    fixed_fields: &[
+        &FF_OK,
+        &FF_HOLD_AVAILABLE,
+        &FF_DATE,
     ]
-);
+};
 
-$MSpec::renew_all = $STSM->new(
-    '65', $l->get('Renew All Request'), [
-        $FFSpec::date
+
+pub const M_FEE_PAID: Message = Message {
+    code: "37",
+    label: "Fee Paid",
+    fixed_fields: &[
+        &FF_DATE,
+        &FF_FEE_TYPE,
+        &FF_PAYMENT_TYPE,
+        &FF_CURRENCY,
     ]
-);
+};
 
-$MSpec::renew_all_resp = $STSM->new(
-    '66', $l->get('Renew All Response'), [
-        $FFSpec::ok,
-        $FFSpec::renewed_count,
-        $FFSpec::unrenewed_count,
-        $FFSpec::date
+pub const M_FEE_PAID_RESP: Message = Message {
+    code: "38",
+    label: "Fee Paid Response",
+    fixed_fields: &[
+        &FF_PAYMENT_ACCEPTED,
+        &FF_DATE
     ]
-);
-
-$MSpec::checkin = $STSM->new(
-    '09', $l->get('Checkin Request'), [
-        $FFSpec::no_block,
-        $FFSpec::date,
-        $FFSpec::return_date
-    ]
-);
-
-$MSpec::checkin_resp = $STSM->new(
-    '10', $l->get('Checkin Response'), [
-        $FFSpec::ok,
-        $FFSpec::resensitize,
-        $FFSpec::magnetic_media,
-        $FFSpec::alert,
-        $FFSpec::date
-    ]
-);
-
-$MSpec::hold = $STSM->new(
-    '15', $l->get('Hold Request'), [
-        $FFSpec::hold_mode,
-        $FFSpec::date,
-    ]
-);
-
-$MSpec::hold = $STSM->new(
-    '16', $l->get('Hold Response'), [
-        $FFSpec::ok,
-        $FFSpec::hold_avail,
-        $FFSpec::date,
-    ]
-);
+};
 
 
-$MSpec::fee_paid = $STSM->new(
-    '37', $l->get('Fee Paid'), [
-        $FFSpec::date,
-        $FFSpec::fee_type,
-        $FFSpec::payment_type,
-        $FFSpec::currency_type
-    ]
-);
+// NOTE: when adding new message types, be sure to also add the new
+// message to Message::from_code()
 
-$MSpec::fee_paid_resp = $STSM->new(
-    '38', $l->get('Fee Paid Response'), [
-        $FFSpec::payment_accepted,
-        $FFSpec::date
-    ]
-);
-
-# Custom "end session" message for communicating with the HTTP backend.
-# This differs from "End Patron Session" (35) message in that it's not
-# about a patron but about a SIP client session, which can involve
-# many patrons (or none).  There is no corresponding response message.
-$MSpec::end_session = $STSM->new('XS', $l->get('End Session'), []);
-$MSpec::end_session_resp = $STSM->new('XT', $l->get('End Session Response'), []);
-*/
