@@ -119,8 +119,6 @@ pub struct Message {
     pub code: &'static str,
     pub label: &'static str,
     pub fixed_fields: &'static [&'static FixedField],
-    pub required_fields: &'static [&'static Field],
-    pub optional_fields: &'static [&'static Field],
 }
 
 impl Message {
@@ -137,7 +135,9 @@ impl Message {
 
         match code {
             m if m == M_SC_STATUS.code  => Some(&M_SC_STATUS),
+            m if m == M_ACS_STATUS.code => Some(&M_ACS_STATUS),
             m if m == M_LOGIN.code      => Some(&M_LOGIN),
+            m if m == M_LOGIN_RESP.code => Some(&M_LOGIN_RESP),
             // TODO
             _ => None,
         }
@@ -275,8 +275,6 @@ pub const F_PATRON_CLASS            : F = F { code: "PC", label: "patron class" 
 pub const F_REGISTER_LOGIN          : F = F { code: "OR", label: "register login" };
 pub const F_CHECK_NUMBER            : F = F { code: "RN", label: "check number" };
 
-const EMPTY: [&'static Field; 0] = [];
-
 pub const M_SC_STATUS: Message = Message {
     code: "99",
     label: "SC Status",
@@ -285,17 +283,34 @@ pub const M_SC_STATUS: Message = Message {
         &FF_MAX_PRINT_WIDTH,
         &FF_PROTOCOL_VERSION
     ],
-    required_fields: &EMPTY,
-    optional_fields: &EMPTY,
+};
+
+pub const M_ACS_STATUS: Message = Message {
+    code: "98",
+    label: "ACS Status",
+    fixed_fields: &[
+        &FF_ONLINE_STATUS,
+        &FF_CHECKIN_OK,
+        &FF_CHECKOUT_OK,
+        &FF_ACS_RENEWAL_POLICY,
+        &FF_STATUS_UPDATE_OK,
+        &FF_OFFLINE_OK,
+        &FF_TIMEOUT_PERIOD,
+        &FF_RETRIES_ALLOWED,
+        &FF_DATETIME_SYNC,
+        &FF_PROTOCOL_VERSION,
+    ],
 };
 
 pub const M_LOGIN: Message = Message {
     code: "93",
     label: "Login Request",
     fixed_fields: &[&FF_UID_ALGO, &FF_PWD_ALGO],
-    required_fields: &[&F_LOGIN_UID, &F_LOGIN_PWD],
-    optional_fields: &EMPTY,
 };
 
-
+pub const M_LOGIN_RESP: Message = Message {
+    code: "94",
+    label: "Login Response",
+    fixed_fields: &[&FF_OK],
+};
 
