@@ -195,15 +195,13 @@ impl Message {
         // Not all messages have fixed fields or fields
         if msg_text.len() == 0 { return Ok(msg); }
 
-        for part in msg_text.split("|") {
+        /*
+        for part in msg_text.split("|").iter() {
 
-            /*
             let mut f_spec = match spec::Field::from_code(&part[0..2]) {
                 Some(fs) => fs,
-                None => &spec::Field { code: &part[0..2], label: "unknown" },
-            };
-            */
-        }
+                None =>
+        */
 
         /*
 
