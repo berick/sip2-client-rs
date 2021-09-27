@@ -56,7 +56,7 @@ impl Client {
 
     pub fn recv(&mut self) -> Result<Message, Error> {
         // TODO
-        return Err(Error::NetworkError);
+        Message::from_sip("")
     }
 }
 

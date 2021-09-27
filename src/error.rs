@@ -6,6 +6,7 @@ pub enum Error {
     DateFormatError,
     FixedFieldLengthError,
     MessageFormatError,
+    UnknownMessageError,
     NetworkError,
 }
 
@@ -27,6 +28,7 @@ impl fmt::Display for Error {
             FixedFieldLengthError => write!(f, "fixed field length error"),
             NetworkError => write!(f, "network error"),
             MessageFormatError => write!(f, "sip message format error"),
+            UnknownMessageError => write!(f, "unknown sip message type"),
         }
     }
 }

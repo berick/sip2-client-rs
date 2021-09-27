@@ -1,5 +1,5 @@
 use std::fmt;
-use log::{error, warn};
+use log::{error, warn, info, debug, trace};
 use super::error::Error;
 use super::spec;
 use super::util;
@@ -158,6 +158,15 @@ impl Message {
     /// Turns a SIP string into a Message
     ///
     /// Assumes the trailing message terminator character has been removed.
+    ///
+    /// ```
+    /// use sip2::{Message, Field, FixedField};
+    /// let sip_text = "9300CNsip_username|COsip_password|";
+    /// let msg = Message::from_sip(sip_text).unwrap();
+    /// assert_eq!(msg.spec().code, "93");
+    /// assert_eq!(msg.fields()[0].spec().code, "CN");
+    /// assert_eq!(msg.fields()[1].value(), "sip_password");
+    /// ```
     pub fn from_sip(text: &str) -> Result<Message, Error> {
 
         let msg_spec = match spec::Message::from_code(&text[0..2]) {
@@ -195,29 +204,23 @@ impl Message {
         // Not all messages have fixed fields or fields
         if msg_text.len() == 0 { return Ok(msg); }
 
-        /*
-        for part in msg_text.split("|").iter() {
+        for part in msg_text.split("|") {
+
+            if part.len() < 2 { continue; }
 
             let mut f_spec = match spec::Field::from_code(&part[0..2]) {
                 Some(fs) => fs,
-                None =>
-        */
+                None => {
+                    warn!("Unknown field: {}", &part[0..2]);
+                    continue;
+                }
+            };
 
-        /*
+            msg.fields.push(Field::new(f_spec, &part[2..]));
+        }
 
-    for my $part (@parts) {
-        last unless $part;
-        my $fspec = SIP2Mediator::Spec::Field->find_by_code(substr($part, 0, 2));
-        push(@{$msg->fields}, SIP2Mediator::Field->new($fspec, substr($part, 2)));
+        Ok(msg)
     }
-
-    return $msg;
-*/
-
-
-        return Err(Error::MessageFormatError);
-    }
-
 }
 
 impl fmt::Display for Message {
