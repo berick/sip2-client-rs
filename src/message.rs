@@ -46,7 +46,7 @@ impl FixedField {
 
 impl fmt::Display for FixedField {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}{: >35}", self.spec.label, self.value)
+        write!(f, "   {}{:.>25}", self.spec.label, self.value)
     }
 }
 
@@ -79,8 +79,7 @@ impl Field {
 
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = format!("{} {}", self.spec.code, self.spec.label);
-        write!(f, "{: <35}{}", s, self.value)
+        write!(f, "{} {:.<37}{}", self.spec.code, self.spec.label, self.value)
     }
 }
 

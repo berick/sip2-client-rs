@@ -20,14 +20,61 @@ impl Util {
             field_map: HashMap::new(),
             message_map: HashMap::new(),
         };
-        u.set_field_map();
+        //u.set_field_map();
         u.set_message_map();
         u
     }
 
+    /*
     fn set_field_map(&mut self) {
         self.field_map.insert(spec::F_LOGIN_UID.code, &spec::F_LOGIN_UID);
+        self.field_map.insert(spec::FF_DATE.code, &spec::F_
+        self.field_map.insert(spec::FF_OK.code, &spec::F_
+        self.field_map.insert(spec::FF_UID_ALGO.code, &spec::F_
+        self.field_map.insert(spec::FF_PWD_ALGO.code, &spec::F_
+        self.field_map.insert(spec::FF_FEE_TYPE.code, &spec::F_
+        self.field_map.insert(spec::FF_PAYMENT_TYPE.code, &spec::F_
+        self.field_map.insert(spec::FF_CURRENCY.code, &spec::F_
+        self.field_map.insert(spec::FF_PAYMENT_ACCEPTED.code, &spec::F_
+        self.field_map.insert(spec::FF_CIRCULATION_STATUS.code, &spec::F_
+        self.field_map.insert(spec::FF_SECURITY_MARKER.code, &spec::F_
+        self.field_map.insert(spec::FF_LANGUAGE.code, &spec::F_
+        self.field_map.insert(spec::FF_PATRON_STATUS.code, &spec::F_
+        self.field_map.insert(spec::FF_SUMMARY.code, &spec::F_
+        self.field_map.insert(spec::FF_HOLD_ITEMS_COUNT.code, &spec::F_
+        self.field_map.insert(spec::FF_OD_ITEMS_COUNT.code, &spec::F_
+        self.field_map.insert(spec::FF_CH_ITEMS_COUNT.code, &spec::F_
+        self.field_map.insert(spec::FF_FINE_ITEMS_COUNT.code, &spec::F_
+        self.field_map.insert(spec::FF_RECALL_ITEMS_COUNT.code, &spec::F_
+        self.field_map.insert(spec::FF_UNAVAIL_ITEMS_COUNT.code, &spec::F_
+        self.field_map.insert(spec::FF_RENEWAL_POLICY.code, &spec::F_
+        self.field_map.insert(spec::FF_NO_BLOCK.code, &spec::F_
+        self.field_map.insert(spec::FF_NB_DUE_DATE.code, &spec::F_
+        self.field_map.insert(spec::FF_STATUS_CODE.code, &spec::F_
+        self.field_map.insert(spec::FF_MAX_PRINT_WIDTH.code, &spec::F_
+        self.field_map.insert(spec::FF_PROTOCOL_VERSION.code, &spec::F_
+        self.field_map.insert(spec::FF_RENEW_OK.code, &spec::F_
+        self.field_map.insert(spec::FF_MAGNETIC_MEDIA.code, &spec::F_
+        self.field_map.insert(spec::FF_DESENSITIZE.code, &spec::F_
+        self.field_map.insert(spec::FF_RESENSITIZE.code, &spec::F_
+        self.field_map.insert(spec::FF_RETURN_DATE.code, &spec::F_
+        self.field_map.insert(spec::FF_ALERT.code, &spec::F_
+        self.field_map.insert(spec::FF_ONLINE_STATUS.code, &spec::F_
+        self.field_map.insert(spec::FF_CHECKIN_OK.code, &spec::F_
+        self.field_map.insert(spec::FF_CHECKOUT_OK.code, &spec::F_
+        self.field_map.insert(spec::FF_ACS_RENEWAL_POLICY.code, &spec::F_
+        self.field_map.insert(spec::FF_STATUS_UPDATE_OK.code, &spec::F_
+        self.field_map.insert(spec::FF_OFFLINE_OK.code, &spec::F_
+        self.field_map.insert(spec::FF_TIMEOUT_PERIOD.code, &spec::F_
+        self.field_map.insert(spec::FF_RETRIES_ALLOWED.code, &spec::F_
+        self.field_map.insert(spec::FF_DATETIME_SYNC.code, &spec::F_
+        self.field_map.insert(spec::FF_THIRD_PARTY_ALLOWED.code, &spec::F_
+        self.field_map.insert(spec::FF_RENEWED_COUNT.code, &spec::F_
+        self.field_map.insert(spec::FF_UNRENEWED_COUNT.code, &spec::F_
+        self.field_map.insert(spec::FF_HOLD_MODE.code, &spec::F_
+        self.field_map.insert(spec::FF_HOLD_AVAILABLE.code, &spec::F_
     }
+    */
 
     fn set_message_map(&mut self) {
         self.message_map.insert(spec::M_LOGIN.code, &spec::M_LOGIN);

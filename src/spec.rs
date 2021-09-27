@@ -25,6 +25,96 @@ impl fmt::Display for Field {
     }
 }
 
+impl Field {
+
+    /// Get a Field from its 2-character code.
+    ///
+    /// ```
+    /// use sip2::spec;
+    /// let f = &spec::F_LOGIN_UID;
+    /// let f2 = spec::Field::get_from_code(f.code).unwrap();
+    /// assert_eq!(f2.code, f.code);
+    /// ```
+    pub fn get_from_code(code: &str) -> Option<&'static Field> {
+        match code {
+            f if f == F_LOGIN_UID.code              => Some(&F_LOGIN_UID),
+            f if f == F_LOGIN_PWD.code              => Some(&F_LOGIN_PWD),
+            f if f == F_PATRON_ID.code              => Some(&F_PATRON_ID),
+            f if f == F_PATRON_IDENT.code           => Some(&F_PATRON_IDENT),
+            f if f == F_ITEM_IDENT.code             => Some(&F_ITEM_IDENT),
+            f if f == F_TERMINAL_PWD.code           => Some(&F_TERMINAL_PWD),
+            f if f == F_PATRON_PWD.code             => Some(&F_PATRON_PWD),
+            f if f == F_PERSONAL_NAME.code          => Some(&F_PERSONAL_NAME),
+            f if f == F_SCREEN_MSG.code             => Some(&F_SCREEN_MSG),
+            f if f == F_PRINT_LINE.code             => Some(&F_PRINT_LINE),
+            f if f == F_DUE_DATE.code               => Some(&F_DUE_DATE),
+            f if f == F_TITLE_IDENT.code            => Some(&F_TITLE_IDENT),
+            f if f == F_BLOCKED_CARD_MSG.code       => Some(&F_BLOCKED_CARD_MSG),
+            f if f == F_LIBRARY_NAME.code           => Some(&F_LIBRARY_NAME),
+            f if f == F_TERMINAL_LOCATION.code      => Some(&F_TERMINAL_LOCATION),
+            f if f == F_INSTITUTION_ID.code         => Some(&F_INSTITUTION_ID),
+            f if f == F_CURRENT_LOCATION.code       => Some(&F_CURRENT_LOCATION),
+            f if f == F_PERMANENT_LOCATION.code     => Some(&F_PERMANENT_LOCATION),
+            f if f == F_HOLD_ITEMS.code             => Some(&F_HOLD_ITEMS),
+            f if f == F_OVERDUE_ITEMS.code          => Some(&F_OVERDUE_ITEMS),
+            f if f == F_CHARGED_ITEMS.code          => Some(&F_CHARGED_ITEMS),
+            f if f == F_FINE_ITEMS.code             => Some(&F_FINE_ITEMS),
+            f if f == F_SEQUENCE_NUMBER.code        => Some(&F_SEQUENCE_NUMBER),
+            f if f == F_CHECKSUM.code               => Some(&F_CHECKSUM),
+            f if f == F_HOME_ADDRESS.code           => Some(&F_HOME_ADDRESS),
+            f if f == F_EMAIL_ADDRESS.code          => Some(&F_EMAIL_ADDRESS),
+            f if f == F_HOME_PHONE.code             => Some(&F_HOME_PHONE),
+            f if f == F_OWNER.code                  => Some(&F_OWNER),
+            f if f == F_CURRENCY.code               => Some(&F_CURRENCY),
+            f if f == F_CANCEL.code                 => Some(&F_CANCEL),
+            f if f == F_TRANSACTION_ID.code         => Some(&F_TRANSACTION_ID),
+            f if f == F_VALID_PATRON.code           => Some(&F_VALID_PATRON),
+            f if f == F_RENEWED_ITEMS.code          => Some(&F_RENEWED_ITEMS),
+            f if f == F_UNRENEWED_ITEMS.code        => Some(&F_UNRENEWED_ITEMS),
+            f if f == F_FEE_ACKNOWLEGED.code        => Some(&F_FEE_ACKNOWLEGED),
+            f if f == F_START_ITEM.code             => Some(&F_START_ITEM),
+            f if f == F_END_ITEM.code               => Some(&F_END_ITEM),
+            f if f == F_QUEUE_POSITION.code         => Some(&F_QUEUE_POSITION),
+            f if f == F_PICKUP_LOCATION.code        => Some(&F_PICKUP_LOCATION),
+            f if f == F_RECALL_ITEMS.code           => Some(&F_RECALL_ITEMS),
+            f if f == F_FEE_TYPE.code               => Some(&F_FEE_TYPE),
+            f if f == F_FEE_LIMIT.code              => Some(&F_FEE_LIMIT),
+            f if f == F_FEE_AMOUNT.code             => Some(&F_FEE_AMOUNT),
+            f if f == F_EXPIRE_DATE.code            => Some(&F_EXPIRE_DATE),
+            f if f == F_SUPPORTED_MESSAGES.code     => Some(&F_SUPPORTED_MESSAGES),
+            f if f == F_HOLD_TYPE.code              => Some(&F_HOLD_TYPE),
+            f if f == F_HOLD_ITEMS_LIMIT.code       => Some(&F_HOLD_ITEMS_LIMIT),
+            f if f == F_OVERDUE_ITEMS_LIST.code     => Some(&F_OVERDUE_ITEMS_LIST),
+            f if f == F_CHARGED_ITEMS_LIMIT.code    => Some(&F_CHARGED_ITEMS_LIMIT),
+            f if f == F_UNAVAILABLE_HOLD_ITEMS.code => Some(&F_UNAVAILABLE_HOLD_ITEMS),
+            f if f == F_HOLD_QUEUE_LENGTH.code      => Some(&F_HOLD_QUEUE_LENGTH),
+            f if f == F_FEE_IDENTIFIER.code         => Some(&F_FEE_IDENTIFIER),
+            f if f == F_ITEM_PROPERTIES.code        => Some(&F_ITEM_PROPERTIES),
+            f if f == F_SECURITY_INHIBIT.code       => Some(&F_SECURITY_INHIBIT),
+            f if f == F_RECALL_DATE.code            => Some(&F_RECALL_DATE),
+            f if f == F_MEDIA_TYPE.code             => Some(&F_MEDIA_TYPE),
+            f if f == F_SORT_BIN.code               => Some(&F_SORT_BIN),
+            f if f == F_HOLD_PICKUP_DATE.code       => Some(&F_HOLD_PICKUP_DATE),
+            f if f == F_LOGIN_USER_ID.code          => Some(&F_LOGIN_USER_ID),
+            f if f == F_LOCATION_CODE.code          => Some(&F_LOCATION_CODE),
+            f if f == F_VALID_PATRON_PWD.code       => Some(&F_VALID_PATRON_PWD),
+            f if f == F_INET_PROFILE.code           => Some(&F_INET_PROFILE),
+            f if f == F_CALL_NUMBER.code            => Some(&F_CALL_NUMBER),
+            f if f == F_COLLECTION_CODE.code        => Some(&F_COLLECTION_CODE),
+            f if f == F_ALERT_TYPE.code             => Some(&F_ALERT_TYPE),
+            f if f == F_HOLD_PATRON_ID.code         => Some(&F_HOLD_PATRON_ID),
+            f if f == F_HOLD_PATRON_NAME.code       => Some(&F_HOLD_PATRON_NAME),
+            f if f == F_DEST_LOCATION.code          => Some(&F_DEST_LOCATION),
+            f if f == F_PATRON_EXPIRE_DATE.code     => Some(&F_PATRON_EXPIRE_DATE),
+            f if f == F_PATRON_DOB.code             => Some(&F_PATRON_DOB),
+            f if f == F_PATRON_CLASS.code           => Some(&F_PATRON_CLASS),
+            f if f == F_REGISTER_LOGIN.code         => Some(&F_REGISTER_LOGIN),
+            f if f == F_CHECK_NUMBER.code           => Some(&F_CHECK_NUMBER),
+            _ => None
+        }
+    }
+}
+
 pub struct Message {
     pub code: &'static str,
     pub label: &'static str,
@@ -32,6 +122,30 @@ pub struct Message {
     pub required_fields: &'static [&'static Field],
     pub optional_fields: &'static [&'static Field],
 }
+
+impl Message {
+
+    /// Maps a message code to a message spec.
+    ///
+    /// ```
+    /// use sip2::spec;
+    /// let msg = &spec::M_LOGIN;
+    /// let msg2 = spec::Message::get_from_code(&spec::M_LOGIN.code).unwrap();
+    /// assert_eq!(msg2.code, msg.code);
+    /// ```
+    pub fn get_from_code(code: &str) -> Option<&'static Message> {
+
+        match code {
+            m if m == M_SC_STATUS.code  => Some(&M_SC_STATUS),
+            m if m == M_LOGIN.code      => Some(&M_LOGIN),
+            _ => None,
+        }
+    }
+}
+
+// -------------------------------------------------------------------------
+// FixedField, Field, and Message Constants
+// -------------------------------------------------------------------------
 
 // To make the below a little tidier
 type FF = FixedField;
