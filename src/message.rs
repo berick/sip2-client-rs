@@ -1,5 +1,5 @@
 use std::fmt;
-use log::{error, warn};
+use log::{trace, warn, error};
 use super::error::Error;
 use super::spec;
 use super::util;
@@ -41,12 +41,6 @@ impl FixedField {
     /// ```
     pub fn to_sip(&self) -> String {
         util::sip_string(&self.value)
-    }
-}
-
-impl fmt::Display for FixedField {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "   {}{:.>25}", self.spec.label, self.value)
     }
 }
 
@@ -94,26 +88,6 @@ impl Field {
     /// ```
     pub fn to_sip(&self) -> String {
         self.code.to_string() + &util::sip_string(&self.value) + &String::from("|")
-    }
-}
-
-impl fmt::Display for Field {
-
-    /// Format a Field for display
-    ///
-    /// ```
-    /// use sip2::Field;
-    /// let f = Field::new("ZZ", "Blarg");
-    /// let s = format!("{}", f);
-    /// assert_eq!(s, "ZZ unknown..............................Blarg");
-    /// ```
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
-        if let Some(spec) = spec::Field::from_code(&self.code) {
-            write!(f, "{} {:.<37}{}", spec.code, spec.label, self.value)
-        } else {
-            write!(f,  "{} {:.<37}{}", self.code, "unknown", self.value)
-        }
     }
 }
 
@@ -205,6 +179,8 @@ impl Message {
     /// ```
     pub fn from_sip(text: &str) -> Result<Message, Error> {
 
+        trace!("from_sip() reading: {}", text);
+
         let msg_spec = match spec::Message::from_code(&text[0..2]) {
             Some(m) => m,
             None => {
@@ -257,13 +233,21 @@ impl Message {
 
 impl fmt::Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+
         write!(f, "{} {}\n", self.spec.code, self.spec.label)?;
+
         for ff in self.fixed_fields.iter() {
-            write!(f, "{}\n", ff)?;
+            write!(f, "   {:.<35}{}\n", ff.spec.label, ff.value)?;
         }
+
         for field in self.fields.iter() {
-            write!(f, "{}\n", field)?;
+            if let Some(spec) = spec::Field::from_code(&field.code) {
+                write!(f, "{} {:.<35}{}\n", spec.code, spec.label, field.value)?;
+            } else {
+                write!(f,  "{} {:.<35}{}\n", field.code, "unknown", field.value)?;
+            }
         }
+
         write!(f, "")
     }
 }

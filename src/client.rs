@@ -4,6 +4,7 @@ use std::net::{Shutdown, TcpStream};
 use log::{trace, debug, error};
 use super::{Message};
 use super::error::Error;
+use super::spec;
 
 const READ_BUFSIZE: usize = 256;
 
@@ -47,7 +48,8 @@ impl Client {
     }
 
     pub fn send(&mut self, msg: &Message) -> Result<(), Error> {
-        let msg_sip = msg.to_sip();
+
+        let msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
 
         debug!("OUTBOUND: {}", msg_sip);
 
@@ -96,11 +98,16 @@ impl Client {
         debug!("INBOUND: {}", text);
 
         if text.len() == 0 {
-            error!("No response from SIP server");
-            return Err(Error::NetworkError);
-        }
+            Err(Error::RequestFailedError)
+        } else {
+            // Discard the line terminator and any junk after it.
+            let mut parts = text.split(spec::LINE_TERMINATOR);
 
-        Message::from_sip(&text)
+            match parts.next() {
+                Some(s) => Message::from_sip(s),
+                None => Err(Error::MessageFormatError),
+            }
+        }
     }
 
     /// Shortcut for self.send() + self.recv().
