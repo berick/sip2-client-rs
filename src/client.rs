@@ -105,6 +105,11 @@ impl Client {
 
         debug!("INBOUND: {}", text);
 
+        if text.len() == 0 {
+            error!("No response from SIP server");
+            return Err(Error::NetworkError);
+        }
+
         Message::from_sip(&text)
     }
 
