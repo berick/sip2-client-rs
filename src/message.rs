@@ -50,58 +50,89 @@ impl fmt::Display for FixedField {
     }
 }
 
+/// Models a SIP Field
 pub struct Field {
-    spec: &'static spec::Field,
+
+    /// 2-character code
+    // Note we could link to the static spec::Field here, like
+    // FixedField, instead of storing a copy of the code/label, but that
+    // won't work with fields which are unknown until runtime.
+    code: String,
+
+    /// Field value
     value: String
 }
 
 impl Field {
 
-    pub fn new(spec: &'static spec::Field, value: &str) -> Self {
+    pub fn new(code: &str, value: &str) -> Self {
         Field {
-            spec,
+            code: code.to_string(),
             value: value.to_string(),
         }
     }
 
-    pub fn spec(&self) -> &'static spec::Field {
-        self.spec
-    }
-
+    /// value getter
     pub fn value(&self) -> &str {
         &self.value
     }
 
+    /// code getter
+    pub fn code(&self) -> &str {
+        &self.code
+    }
+
     /// Create a SIP string from a field
+    ///
+    /// String includes the trailing "|" delimiter.
     ///
     /// ```
     /// use sip2::Field;
     /// use sip2::spec;
-    /// let f = Field::new(&spec::F_LOGIN_UID, "sip_username");
+    /// let f = Field::new(spec::F_LOGIN_UID.code, "sip_username");
     /// assert_eq!(f.to_sip(), "CNsip_username|");
     /// ```
     pub fn to_sip(&self) -> String {
-        self.spec.code.to_string() + &util::sip_string(&self.value) + &String::from("|")
+        self.code.to_string() + &util::sip_string(&self.value) + &String::from("|")
     }
 }
 
 impl fmt::Display for Field {
+
+    /// Format a Field for display
+    ///
+    /// ```
+    /// use sip2::Field;
+    /// let f = Field::new("ZZ", "Blarg");
+    /// let s = format!("{}", f);
+    /// assert_eq!(s, "ZZ unknown..............................Blarg");
+    /// ```
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {:.<37}{}", self.spec.code, self.spec.label, self.value)
+
+        if let Some(spec) = spec::Field::from_code(&self.code) {
+            write!(f, "{} {:.<37}{}", spec.code, spec.label, self.value)
+        } else {
+            write!(f,  "{} {:.<37}{}", self.code, "unknown", self.value)
+        }
     }
 }
 
 pub struct Message {
+
+    /// Link to the specification for this message type
     spec: &'static spec::Message,
-    fields: Vec<Field>,
+
+    /// List of fixed fields
     fixed_fields: Vec<FixedField>,
+
+    /// List of fields
+    fields: Vec<Field>,
 }
 
 impl Message {
 
     pub fn new(spec: &'static spec::Message,
         fixed_fields: Vec<FixedField>, fields: Vec<Field>) -> Self {
-
         Message {
             spec,
             fixed_fields,
@@ -134,8 +165,8 @@ impl Message {
     ///         FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
     ///     ],
     ///     vec![
-    ///         Field::new(&spec::F_LOGIN_UID, "sip_username"),
-    ///         Field::new(&spec::F_LOGIN_PWD, "sip_password"),
+    ///         Field::new(spec::F_LOGIN_UID.code, "sip_username"),
+    ///         Field::new(spec::F_LOGIN_PWD.code, "sip_password"),
     ///     ]
     /// );
     ///
@@ -159,12 +190,17 @@ impl Message {
     ///
     /// Assumes the trailing message terminator character has been removed.
     ///
+    /// Message types and Fixed Field types must be known in advance
+    /// (see sip2::spec), but Field's do not necessarily have to match
+    /// a known spec::Field.  Any value of 3 or more characters will be
+    /// treated as a valid field.
+    ///
     /// ```
     /// use sip2::{Message, Field, FixedField};
     /// let sip_text = "9300CNsip_username|COsip_password|";
     /// let msg = Message::from_sip(sip_text).unwrap();
     /// assert_eq!(msg.spec().code, "93");
-    /// assert_eq!(msg.fields()[0].spec().code, "CN");
+    /// assert_eq!(msg.fields()[0].code(), "CN");
     /// assert_eq!(msg.fields()[1].value(), "sip_password");
     /// ```
     pub fn from_sip(text: &str) -> Result<Message, Error> {
@@ -172,6 +208,7 @@ impl Message {
         let msg_spec = match spec::Message::from_code(&text[0..2]) {
             Some(m) => m,
             None => {
+                // Message spec must match a known value.
                 error!("Unknown message type: {}", &text[0..2]);
                 return Err(Error::MessageFormatError);
             }
@@ -189,6 +226,8 @@ impl Message {
         for ff_spec in msg_spec.fixed_fields.iter() {
 
             if msg_text.len() < ff_spec.length {
+                // Fixed Fields must match known values.
+
                 warn!("Message has invalid fixed field: {} : {}", ff_spec.label, msg_text);
                 return Err(Error::MessageFormatError);
             }
@@ -201,22 +240,15 @@ impl Message {
             msg.fixed_fields.push(FixedField::new(ff_spec, value).unwrap());
         }
 
-        // Not all messages have fixed fields or fields
+        // Not all messages have fixed fields and/or fields
         if msg_text.len() == 0 { return Ok(msg); }
 
         for part in msg_text.split("|") {
 
-            if part.len() < 2 { continue; }
+            // Discard any fields that don't have values.
+            if part.len() < 3 { continue; }
 
-            let mut f_spec = match spec::Field::from_code(&part[0..2]) {
-                Some(fs) => fs,
-                None => {
-                    warn!("Unknown field: {}", &part[0..2]);
-                    continue;
-                }
-            };
-
-            msg.fields.push(Field::new(f_spec, &part[2..]));
+            msg.fields.push(Field::new(&part[0..2], &part[2..]));
         }
 
         Ok(msg)
@@ -235,3 +267,4 @@ impl fmt::Display for Message {
         write!(f, "")
     }
 }
+

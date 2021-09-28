@@ -10,3 +10,7 @@ edition = "2018"
 chrono = "0.4.19"
 log = "0.4.14"
 env_logger = "0.9.0"
+getopts = "0.2.21"
+
+[[example]]
+name = "sip2-client"

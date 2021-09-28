@@ -1,7 +1,7 @@
 use std::str;
 use std::io::prelude::*;
 use std::net::{Shutdown, TcpStream};
-use log::{debug, info, error};
+use log::{trace, debug, info, error};
 use super::{Message, Field, FixedField};
 use super::error::Error;
 use super::spec;
@@ -26,6 +26,8 @@ impl Client {
     /// assert_eq!(Client::new("JUNK0+..-*z$@").is_err(), true);
     /// ```
     pub fn new(sip_host: &str) -> Result<Self, Error>  {
+
+        debug!("Client::new() connecting to: {}", sip_host);
 
         match TcpStream::connect(sip_host) {
             Ok(stream) => {
@@ -70,6 +72,8 @@ impl Client {
 
     pub fn recv(&mut self) -> Result<Message, Error> {
 
+        trace!("Client::recv() waiting for response...");
+
         let mut text = String::from("");
 
         loop {
@@ -102,6 +106,12 @@ impl Client {
         debug!("INBOUND: {}", text);
 
         Message::from_sip(&text)
+    }
+
+    /// Shortcut for self.send() + self.recv().
+    pub fn sendrecv(&mut self, msg: &Message) -> Result<Message, Error> {
+        self.send(msg)?;
+        self.recv()
     }
 }
 

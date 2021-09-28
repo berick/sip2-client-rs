@@ -47,8 +47,8 @@ fn login_message() {
             FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
         ],
         vec![
-            Field::new(&spec::F_LOGIN_UID, "sip_username"),
-            Field::new(&spec::F_LOGIN_PWD, "sip_password"),
+            Field::new(spec::F_LOGIN_UID.code, "sip_username"),
+            Field::new(spec::F_LOGIN_PWD.code, "sip_password"),
         ]
     );
 
