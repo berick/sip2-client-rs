@@ -1,5 +1,5 @@
 use std::fmt;
-use log::{error, warn, info, debug, trace};
+use log::{error, warn};
 use super::error::Error;
 use super::spec;
 use super::util;
@@ -257,12 +257,12 @@ impl Message {
 
 impl fmt::Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {}\n", self.spec.code, self.spec.label);
+        write!(f, "{} {}\n", self.spec.code, self.spec.label)?;
         for ff in self.fixed_fields.iter() {
-            write!(f, "{}\n", ff);
+            write!(f, "{}\n", ff)?;
         }
         for field in self.fields.iter() {
-            write!(f, "{}\n", field);
+            write!(f, "{}\n", field)?;
         }
         write!(f, "")
     }

@@ -1,5 +1,4 @@
 use super::spec;
-use super::util;
 use super::message::FixedField;
 use super::message::Field;
 use super::message::Message;
