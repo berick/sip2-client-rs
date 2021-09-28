@@ -2,6 +2,45 @@ use std::env;
 use getopts;
 use sip2::*;
 
+fn send_login(client: &mut sip2::Client, username: &str, password: &str) -> Result<(), Error> {
+    let login = Message::new(
+        &spec::M_LOGIN,
+        vec![
+            FixedField::new(&spec::FF_UID_ALGO, "0").unwrap(),
+            FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
+        ],
+        vec![
+            Field::new(spec::F_LOGIN_UID.code, &username),
+            Field::new(spec::F_LOGIN_PWD.code, &password),
+        ],
+    );
+
+    let resp1 = client.sendrecv(&login)?;
+
+    println!("SIP server responded:\n{}", resp1);
+
+    Ok(())
+}
+
+fn send_sc_status(client: &mut sip2::Client) -> Result<(), Error> {
+
+    let sc_status = Message::new(
+        &spec::M_SC_STATUS,
+        vec![
+            FixedField::new(&spec::FF_STATUS_CODE, "0").unwrap(),
+            FixedField::new(&spec::FF_MAX_PRINT_WIDTH, "999").unwrap(),
+            FixedField::new(&spec::FF_PROTOCOL_VERSION, &spec::SIP_PROTOCOL_VERSION).unwrap(),
+        ],
+        vec![],
+    );
+
+    let resp2 = client.sendrecv(&sc_status)?;
+
+    println!("SIP server responded:\n{}", resp2);
+
+    Ok(())
+}
+
 fn main() -> Result<(), Error> {
 
     env_logger::init();
@@ -43,36 +82,7 @@ fn main() -> Result<(), Error> {
 
     let mut client = Client::new(&(host + ":" + &port))?;
 
-    let login = Message::new(
-        &spec::M_LOGIN,
-        vec![
-            FixedField::new(&spec::FF_UID_ALGO, "0").unwrap(),
-            FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
-        ],
-        vec![
-            Field::new(spec::F_LOGIN_UID.code, &username),
-            Field::new(spec::F_LOGIN_PWD.code, &password),
-        ],
-    );
-
-    let resp1 = client.sendrecv(&login)?;
-
-    println!("SIP server responded:\n{}", resp1);
-
-    let sc_status = Message::new(
-        &spec::M_SC_STATUS,
-        vec![
-            FixedField::new(&spec::FF_STATUS_CODE, "0").unwrap(),
-            FixedField::new(&spec::FF_MAX_PRINT_WIDTH, "999").unwrap(),
-            FixedField::new(&spec::FF_PROTOCOL_VERSION, &spec::SIP_PROTOCOL_VERSION).unwrap(),
-        ],
-        vec![],
-    );
-
-    let resp2 = client.sendrecv(&sc_status)?;
-
-    println!("SIP server responded:\n{}", resp2);
-
-    Ok(())
+    send_login(&mut client, &username, &password);
+    send_sc_status(&mut client)
 }
 
