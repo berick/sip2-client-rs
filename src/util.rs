@@ -1,6 +1,5 @@
-use std::collections::HashMap;
 use chrono::{DateTime, Local};
-use std::fmt;
+use log::{error};
 use super::spec;
 use super::error;
 
@@ -39,7 +38,10 @@ pub fn sip_date_now() -> String {
 pub fn sip_date(iso_date: &str) -> Result<String, error::Error> {
     match DateTime::parse_from_rfc3339(iso_date) {
         Ok(dt) => Ok(dt.format(spec::SIP_DATE_FORMAT).to_string()),
-        Err(s) => Err(error::Error::DateFormatError),
+        Err(s) => {
+            error!("Error parsing sip date: {} : {}", iso_date, s);
+            return Err(error::Error::DateFormatError);
+        }
     }
 }
 

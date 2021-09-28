@@ -1,4 +1,3 @@
-use super::error::Error;
 use std::fmt;
 
 pub const SIP_PROTOCOL_VERSION: &str = "2.00";

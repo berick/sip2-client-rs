@@ -1,16 +1,13 @@
 use std::str;
 use std::io::prelude::*;
 use std::net::{Shutdown, TcpStream};
-use log::{trace, debug, info, error};
-use super::{Message, Field, FixedField};
+use log::{trace, debug, error};
+use super::{Message};
 use super::error::Error;
-use super::spec;
-use super::util;
 
 const READ_BUFSIZE: usize = 256;
 
 pub struct Client {
-    sip_host: String, // E.g. 127.0.0.1:6001
     tcp_stream: TcpStream,
 }
 
@@ -30,14 +27,7 @@ impl Client {
         debug!("Client::new() connecting to: {}", sip_host);
 
         match TcpStream::connect(sip_host) {
-            Ok(stream) => {
-                return Ok(
-                    Client {
-                        sip_host: sip_host.to_string(),
-                        tcp_stream: stream
-                    }
-                );
-            }
+            Ok(stream) => Ok(Client { tcp_stream: stream }),
             Err(s) => {
                 error!("Client::new() failed: {}", s);
                 return Err(Error::NetworkError);
