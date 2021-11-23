@@ -17,6 +17,7 @@ pub fn sip_string(text: &str) -> String {
     text.replace("|", "")
 }
 
+/// Current date + time in SIP format
 pub fn sip_date_now() -> String {
     Local::now().format(spec::SIP_DATE_FORMAT).to_string()
 }

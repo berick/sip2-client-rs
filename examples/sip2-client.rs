@@ -2,6 +2,43 @@ use std::env;
 use getopts;
 use sip2::*;
 
+const HELP_TEXT: &str = r#"
+
+Required Options:
+    --sip-host
+    --sip-port
+    --sip-username
+    --sip-password
+
+"#;
+
+fn main() -> Result<(), Error> {
+
+    env_logger::init();
+
+    let args: Vec<String> = env::args().collect();
+    let mut opts = getopts::Options::new();
+
+    opts.optopt("h", "sip-host", "SIP Host", "HOST");
+    opts.optopt("p", "sip-port", "SIP Port", "PORT");
+    opts.optopt("u", "sip-username", "SIP Username", "USERNAME");
+    opts.optopt("w", "sip-password", "SIP Password", "PASSWORD");
+
+    let options = opts.parse(&args[1..])
+        .expect("Error parsing command line options");
+
+    let host = options.opt_str("sip-host").expect(HELP_TEXT);
+    let port = options.opt_str("sip-port").expect(HELP_TEXT);
+
+    let username = options.opt_str("sip-username").expect(HELP_TEXT);
+    let password = options.opt_str("sip-password").expect(HELP_TEXT);
+
+    let mut client = Client::new(&(host + ":" + &port))?;
+
+    send_login(&mut client, &username, &password)?;
+    send_sc_status(&mut client)
+}
+
 fn send_login(client: &mut sip2::Client, username: &str, password: &str) -> Result<(), Error> {
     let login = Message::new(
         &spec::M_LOGIN,
@@ -41,48 +78,4 @@ fn send_sc_status(client: &mut sip2::Client) -> Result<(), Error> {
     Ok(())
 }
 
-fn main() -> Result<(), Error> {
-
-    env_logger::init();
-
-    let args: Vec<String> = env::args().collect();
-    let mut opts = getopts::Options::new();
-
-    opts.optopt("h", "sip-host", "SIP Host", "HOST");
-    opts.optopt("p", "sip-port", "SIP Port", "PORT");
-    opts.optopt("u", "sip-username", "SIP Username", "USERNAME");
-    opts.optopt("w", "sip-password", "SIP Password", "PASSWORD");
-
-    let options = match opts.parse(&args[1..]) {
-        Ok(o) => o,
-        Err(s) => panic!("Failure parsing options: {}", s),
-    };
-
-    let host = match options.opt_str("sip-host") {
-        Some(h) => h,
-        None => panic!("SIP host required"),
-    };
-
-    let port = match options.opt_str("sip-port") {
-        Some(p) => p,
-        None => panic!("SIP port required"),
-    };
-
-    let username = match options.opt_str("sip-username") {
-        Some(p) => p,
-        None => panic!("SIP username required"),
-    };
-
-    let password = match options.opt_str("sip-password") {
-        Some(p) => p,
-        None => panic!("SIP password required"),
-    };
-
-    println!("host = {}, port = {}", host, port);
-
-    let mut client = Client::new(&(host + ":" + &port))?;
-
-    send_login(&mut client, &username, &password);
-    send_sc_status(&mut client)
-}
 

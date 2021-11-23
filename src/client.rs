@@ -24,7 +24,6 @@ impl Client {
     /// assert_eq!(Client::new("JUNK0+..-*z$@").is_err(), true);
     /// ```
     pub fn new(sip_host: &str) -> Result<Self, Error>  {
-
         debug!("Client::new() connecting to: {}", sip_host);
 
         match TcpStream::connect(sip_host) {
@@ -37,6 +36,7 @@ impl Client {
     }
 
     pub fn disconnect(&self) -> Result<(), Error> {
+        debug!("Client::disconnect()");
 
         match self.tcp_stream.shutdown(Shutdown::Both) {
             Ok(_) => Ok(()),
@@ -98,7 +98,7 @@ impl Client {
         debug!("INBOUND: {}", text);
 
         if text.len() == 0 {
-            Err(Error::RequestFailedError)
+            Err(Error::NoResponseError)
         } else {
             // Discard the line terminator and any junk after it.
             let mut parts = text.split(spec::LINE_TERMINATOR);
@@ -116,8 +116,4 @@ impl Client {
         self.recv()
     }
 }
-
-
-
-
 

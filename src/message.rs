@@ -1,5 +1,5 @@
 use std::fmt;
-use log::{trace, warn, error};
+use log::{warn, error};
 use super::error::Error;
 use super::spec;
 use super::util;
@@ -107,11 +107,41 @@ impl Message {
 
     pub fn new(spec: &'static spec::Message,
         fixed_fields: Vec<FixedField>, fields: Vec<Field>) -> Self {
-        Message {
+
+        let mut msg = Message {
             spec,
             fixed_fields,
             fields,
-        }
+        };
+
+        msg.sort_fields();
+
+        msg
+    }
+
+    /// Keep fields sorted for consistent to_sip output.
+    fn sort_fields(&mut self) {
+        self.fields.sort_by(|a, b| a.code.cmp(&b.code));
+    }
+
+    /// Adds a Field to a message.
+    ///
+    /// ```
+    /// use sip2::{Message, Field};
+    /// use sip2::spec;
+    ///
+    /// let mut msg = Message::new(
+    ///     &spec::M_LOGIN,
+    ///     vec![],
+    ///     vec![],
+    /// );
+    ///
+    /// msg.add_field("ZZ", "ZZ is a value");
+    /// assert_eq!(msg.fields()[0].code(), "ZZ");
+    /// ```
+    pub fn add_field(&mut self, code: &str, value: &str) {
+        self.fields.push(Field::new(code, value));
+        self.sort_fields();
     }
 
     pub fn spec(&self) -> &'static spec::Message {
@@ -178,8 +208,6 @@ impl Message {
     /// assert_eq!(msg.fields()[1].value(), "sip_password");
     /// ```
     pub fn from_sip(text: &str) -> Result<Message, Error> {
-
-        trace!("from_sip() reading: {}", text);
 
         let msg_spec = match spec::Message::from_code(&text[0..2]) {
             Some(m) => m,
