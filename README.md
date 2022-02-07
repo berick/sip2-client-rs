@@ -1,2 +1,4 @@
-# sip2-mediator-rust
-SIP2Mediator Rust
+# sip2-client-rust
+
+Rust SIP2 Client Library
+
