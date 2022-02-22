@@ -144,6 +144,13 @@ impl Message {
         self.sort_fields();
     }
 
+    pub fn maybe_add_field(&mut self, code: &str, value: Option<&str>) {
+        if let Some(v) = value {
+            self.fields.push(Field::new(code, v));
+            self.sort_fields();
+        }
+    }
+
     pub fn spec(&self) -> &'static spec::Message {
         self.spec
     }

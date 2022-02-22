@@ -8,10 +8,14 @@ Required Options:
 
     --sip-host
     --sip-port
-    --sip-username
-    --sip-password
+    --sip-user
+    --sip-pass
 
 "#;
+
+fn print_err(err: &str) -> String {
+    format!("\n\nError: {}\n\n------{}", err, HELP_TEXT)
+}
 
 fn main() -> Result<(), Error> {
 
@@ -22,31 +26,40 @@ fn main() -> Result<(), Error> {
 
     opts.optopt("h", "sip-host", "SIP Host", "HOST");
     opts.optopt("p", "sip-port", "SIP Port", "PORT");
-    opts.optopt("u", "sip-username", "SIP Username", "USERNAME");
-    opts.optopt("w", "sip-password", "SIP Password", "PASSWORD");
+    opts.optopt("u", "sip-user", "SIP user", "user");
+    opts.optopt("w", "sip-pass", "SIP pass", "PASSWORD");
 
     let options = opts.parse(&args[1..])
         .expect("Error parsing command line options");
 
-    let host = options.opt_str("sip-host").expect(HELP_TEXT);
-    let port = options.opt_str("sip-port").expect(HELP_TEXT);
-
-    let username = options.opt_str("sip-username").expect(HELP_TEXT);
-    let password = options.opt_str("sip-password").expect(HELP_TEXT);
+    let host = options.opt_str("sip-host").expect(&print_err("--sip-host required"));
+    let port = options.opt_str("sip-port").expect(&print_err("--sip-port required"));
+    let user = options.opt_str("sip-user").expect(&print_err("--sip-user required"));
+    let pass = options.opt_str("sip-pass").expect(&print_err("--sip-pass required"));
 
     let iport = port.parse::<u32>().expect(HELP_TEXT);
 
     let mut client = Client::new(&host, iport)?;
 
-    client.login(&username, &password)?;
+    let resp = client.login(Some(&user), Some(&pass), None)?;
 
-    println!("Login OK to {}", host);
+    match resp.ok() {
+        true => println!("Login OK"),
+        false => panic!("Login Failed"),
+    }
+
+    let resp = client.sc_status()?;
+
+    match resp.ok() {
+        true => println!("SC Status OK"),
+        false => panic!("SC Status Says Offline"),
+    }
 
     /*
 
     let mut client = Client::new(&(host + ":" + &port))?;
 
-    send_login(&mut client, &username, &password)?;
+    send_login(&mut client, &user, &pass)?;
     send_sc_status(&mut client)
     */
 
@@ -54,7 +67,7 @@ fn main() -> Result<(), Error> {
 }
 
 /*
-fn send_login(client: &mut sip2::Client, username: &str, password: &str) -> Result<(), Error> {
+fn send_login(client: &mut sip2::Client, user: &str, pass: &str) -> Result<(), Error> {
     let login = Message::new(
         &spec::M_LOGIN,
         vec![
@@ -62,8 +75,8 @@ fn send_login(client: &mut sip2::Client, username: &str, password: &str) -> Resu
             FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
         ],
         vec![
-            Field::new(spec::F_LOGIN_UID.code, &username),
-            Field::new(spec::F_LOGIN_PWD.code, &password),
+            Field::new(spec::F_LOGIN_UID.code, &user),
+            Field::new(spec::F_LOGIN_PWD.code, &pass),
         ],
     );
 
