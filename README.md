@@ -1,4 +1,4 @@
-# sip2-client-rust
+# sip2-client-rs
 
 Rust SIP2 Client Library
 
