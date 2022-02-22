@@ -9,6 +9,7 @@ pub mod util;
 
 mod error;
 mod message;
+mod connection;
 mod client;
 
 #[cfg(test)]

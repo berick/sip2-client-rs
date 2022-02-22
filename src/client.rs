@@ -2,14 +2,14 @@ use std::str;
 use std::io::prelude::*;
 use std::net::{Shutdown, TcpStream};
 use log::{trace, debug, error};
-use super::{Message};
+use super::{spec, Message, Field, FixedField};
 use super::error::Error;
-use super::spec;
+use super::connection::Connection;
 
 const READ_BUFSIZE: usize = 256;
 
 pub struct Client {
-    tcp_stream: TcpStream,
+    connection: Connection,
 }
 
 impl Client {
@@ -23,97 +23,42 @@ impl Client {
     /// use sip2::Client;
     /// assert_eq!(Client::new("JUNK0+..-*z$@").is_err(), true);
     /// ```
-    pub fn new(sip_host: &str) -> Result<Self, Error>  {
-        debug!("Client::new() connecting to: {}", sip_host);
-
-        match TcpStream::connect(sip_host) {
-            Ok(stream) => Ok(Client { tcp_stream: stream }),
-            Err(s) => {
-                error!("Client::new() failed: {}", s);
-                return Err(Error::NetworkError);
-            }
-        }
+    pub fn new(host: &str, port: u32) -> Result<Self, Error>  {
+        let uri = String::from(host) + ":" + &(port.to_string());
+        let mut con = Connection::new(&uri)?;
+        Ok(Client { connection: con })
     }
 
     pub fn disconnect(&self) -> Result<(), Error> {
-        debug!("Client::disconnect()");
-
-        match self.tcp_stream.shutdown(Shutdown::Both) {
-            Ok(_) => Ok(()),
-            Err(s) => {
-                error!("disconnect() failed: {}", s);
-                return Err(Error::NetworkError);
-            }
-        }
+        self.connection.disconnect()
     }
 
-    pub fn send(&mut self, msg: &Message) -> Result<(), Error> {
+    // TODO location code
+    pub fn login(&mut self, username: &str, password: &str) -> Result<(), Error> {
 
-        let msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
+        let login = Message::new(
+            &spec::M_LOGIN,
+            vec![
+                FixedField::new(&spec::FF_UID_ALGO, "0").unwrap(),
+                FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
+            ],
+            vec![
+                Field::new(spec::F_LOGIN_UID.code, &username),
+                Field::new(spec::F_LOGIN_PWD.code, &password),
+            ],
+        );
 
-        debug!("OUTBOUND: {}", msg_sip);
+        let resp = self.connection.sendrecv(&login)?;
 
-        match self.tcp_stream.write(&msg_sip.as_bytes()) {
-            Ok(_) => Ok(()),
-            Err(s) => {
-                error!("send() failed: {}", s);
-                return Err(Error::NetworkError);
-            }
-        }
-    }
+        if resp.spec().code == spec::M_LOGIN_RESP.code
+            && resp.fixed_fields().len() == 1
+            && resp.fixed_fields()[0].value() == "1" {
 
-    pub fn recv(&mut self) -> Result<Message, Error> {
-
-        trace!("Client::recv() waiting for response...");
-
-        let mut text = String::from("");
-
-        loop {
-
-            let mut buf: [u8; READ_BUFSIZE] = [0; READ_BUFSIZE];
-
-            let num_bytes = match self.tcp_stream.read(&mut buf) {
-                Ok(num) => num,
-                Err(s) => {
-                    error!("recv() failed: {}", s);
-                    return Err(Error::NetworkError);
-                }
-            };
-
-            if num_bytes == 0 { break; }
-
-            let chunk = match str::from_utf8(&buf) {
-                Ok(s) => s,
-                Err(s) => {
-                    error!("recv() got non-utf data: {}", s);
-                    return Err(Error::MessageFormatError);
-                }
-            };
-
-            text.push_str(chunk);
-
-            if num_bytes < READ_BUFSIZE { break; }
+            return Ok(());
         }
 
-        debug!("INBOUND: {}", text);
-
-        if text.len() == 0 {
-            Err(Error::NoResponseError)
-        } else {
-            // Discard the line terminator and any junk after it.
-            let mut parts = text.split(spec::LINE_TERMINATOR);
-
-            match parts.next() {
-                Some(s) => Message::from_sip(s),
-                None => Err(Error::MessageFormatError),
-            }
-        }
-    }
-
-    /// Shortcut for self.send() + self.recv().
-    pub fn sendrecv(&mut self, msg: &Message) -> Result<Message, Error> {
-        self.send(msg)?;
-        self.recv()
+        return Err(Error::LoginError);
     }
 }
+
 

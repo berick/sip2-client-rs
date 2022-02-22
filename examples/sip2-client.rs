@@ -5,6 +5,7 @@ use sip2::*;
 const HELP_TEXT: &str = r#"
 
 Required Options:
+
     --sip-host
     --sip-port
     --sip-username
@@ -33,12 +34,26 @@ fn main() -> Result<(), Error> {
     let username = options.opt_str("sip-username").expect(HELP_TEXT);
     let password = options.opt_str("sip-password").expect(HELP_TEXT);
 
+    let iport = port.parse::<u32>().expect(HELP_TEXT);
+
+    let mut client = Client::new(&host, iport)?;
+
+    client.login(&username, &password)?;
+
+    println!("Login OK to {}", host);
+
+    /*
+
     let mut client = Client::new(&(host + ":" + &port))?;
 
     send_login(&mut client, &username, &password)?;
     send_sc_status(&mut client)
+    */
+
+    Ok(())
 }
 
+/*
 fn send_login(client: &mut sip2::Client, username: &str, password: &str) -> Result<(), Error> {
     let login = Message::new(
         &spec::M_LOGIN,
@@ -78,4 +93,4 @@ fn send_sc_status(client: &mut sip2::Client) -> Result<(), Error> {
     Ok(())
 }
 
-
+*/

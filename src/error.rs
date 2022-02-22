@@ -9,6 +9,7 @@ pub enum Error {
     UnknownMessageError,
     NetworkError,
     NoResponseError,
+    LoginError,
 }
 
 use self::Error::*;
@@ -31,6 +32,7 @@ impl fmt::Display for Error {
             MessageFormatError => write!(f, "sip message format error"),
             UnknownMessageError => write!(f, "unknown sip message type"),
             NoResponseError => write!(f, "no response was received"),
+            LoginError => write!(f, "login failed"),
         }
     }
 }
