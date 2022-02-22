@@ -1,7 +1,4 @@
 use std::str;
-use std::io::prelude::*;
-use std::net::{Shutdown, TcpStream};
-use log::{trace, debug, error};
 use super::{spec, Message, Field, FixedField, util};
 use super::error::Error;
 use super::connection::Connection;
@@ -51,7 +48,7 @@ impl Client {
     /// Creates a new SIP client and opens the TCP connection to the server.
     pub fn new(host: &str, port: u32) -> Result<Self, Error>  {
         let uri = String::from(host) + ":" + &(port.to_string());
-        let mut con = Connection::new(&uri)?;
+        let con = Connection::new(&uri)?;
         Ok(Client { connection: con })
     }
 
