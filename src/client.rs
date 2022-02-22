@@ -6,17 +6,17 @@ use super::{spec, Message, Field, FixedField, util};
 use super::error::Error;
 use super::connection::Connection;
 
-pub struct PatronStatusParams<'a> {
-    pub patron_barcode: &'a str,
-    pub patron_pwd: Option<&'a str>,
-    pub institution: Option<&'a str>,
-    pub terminal_pwd: Option<&'a str>,
+pub struct PatronStatusParams {
+    pub patron_barcode: String,
+    pub patron_pwd: Option<String>,
+    pub institution: Option<String>,
+    pub terminal_pwd: Option<String>,
 }
 
-impl<'a> PatronStatusParams<'a> {
-    pub fn new(patron_barcode: &'a str) -> Self {
+impl PatronStatusParams {
+    pub fn new(patron_barcode: &str) -> Self {
         PatronStatusParams {
-            patron_barcode: patron_barcode,
+            patron_barcode: patron_barcode.to_string(),
             patron_pwd: None,
             institution: None,
             terminal_pwd: None,
@@ -134,9 +134,9 @@ impl Client {
             vec![Field::new(spec::F_PATRON_ID.code, &params.patron_barcode)],
         );
 
-        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution);
-        req.maybe_add_field(spec::F_PATRON_PWD.code, params.patron_pwd);
-        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd);
+        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution.as_deref());
+        req.maybe_add_field(spec::F_PATRON_PWD.code, params.patron_pwd.as_deref());
+        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd.as_deref());
 
         let resp = self.connection.sendrecv(&req)?;
 

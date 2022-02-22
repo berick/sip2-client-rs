@@ -26,8 +26,12 @@ fn main() -> Result<(), Error> {
 
     opts.optopt("h", "sip-host", "SIP Host", "HOST");
     opts.optopt("p", "sip-port", "SIP Port", "PORT");
-    opts.optopt("u", "sip-user", "SIP user", "user");
+    opts.optopt("u", "sip-user", "SIP User", "USER");
     opts.optopt("w", "sip-pass", "SIP pass", "PASSWORD");
+
+    // Optional
+    opts.optopt("b", "patron-barcode", "Patron Barcode", "PATRON-BARCODE");
+    opts.optopt("a", "patron-pass", "Patron Password", "PATRON-PASSWORD");
 
     let options = opts.parse(&args[1..])
         .expect("Error parsing command line options");
@@ -51,62 +55,21 @@ fn main() -> Result<(), Error> {
         false => eprintln!("SC Status Says Offline"),
     }
 
-    let params = PatronStatusParams::new("ABCDEF");
+    // --- PATRON STUFF ---
 
-    match client.patron_status(&params)?.ok() {
-        true => println!("Patron is valid"),
-        false => eprintln!("Patron is not valid"),
+    let patron_barcode = options.opt_str("patron-barcode");
+
+    if patron_barcode.is_some() {
+
+        let mut params = PatronStatusParams::new(&patron_barcode.unwrap());
+        params.patron_pwd = options.opt_str("patron-pass");
+
+        match client.patron_status(&params)?.ok() {
+            true => println!("Patron is valid"),
+            false => eprintln!("Patron is not valid"),
+        }
     }
 
-    /*
-
-    let mut client = Client::new(&(host + ":" + &port))?;
-
-    send_login(&mut client, &user, &pass)?;
-    send_sc_status(&mut client)
-    */
-
     Ok(())
 }
 
-/*
-fn send_login(client: &mut sip2::Client, user: &str, pass: &str) -> Result<(), Error> {
-    let login = Message::new(
-        &spec::M_LOGIN,
-        vec![
-            FixedField::new(&spec::FF_UID_ALGO, "0").unwrap(),
-            FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
-        ],
-        vec![
-            Field::new(spec::F_LOGIN_UID.code, &user),
-            Field::new(spec::F_LOGIN_PWD.code, &pass),
-        ],
-    );
-
-    let resp1 = client.sendrecv(&login)?;
-
-    println!("SIP server responded:\n{}", resp1);
-
-    Ok(())
-}
-
-fn send_sc_status(client: &mut sip2::Client) -> Result<(), Error> {
-
-    let sc_status = Message::new(
-        &spec::M_SC_STATUS,
-        vec![
-            FixedField::new(&spec::FF_STATUS_CODE, "0").unwrap(),
-            FixedField::new(&spec::FF_MAX_PRINT_WIDTH, "999").unwrap(),
-            FixedField::new(&spec::FF_PROTOCOL_VERSION, &spec::SIP_PROTOCOL_VERSION).unwrap(),
-        ],
-        vec![],
-    );
-
-    let resp2 = client.sendrecv(&sc_status)?;
-
-    println!("SIP server responded:\n{}", resp2);
-
-    Ok(())
-}
-
-*/
