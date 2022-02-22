@@ -3,6 +3,7 @@ pub use self::message::FixedField;
 pub use self::message::Field;
 pub use self::message::Message;
 pub use self::client::Client;
+pub use self::client::PatronStatusParams;
 
 pub mod spec;
 pub mod util;

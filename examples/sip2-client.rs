@@ -41,18 +41,21 @@ fn main() -> Result<(), Error> {
 
     let mut client = Client::new(&host, iport)?;
 
-    let resp = client.login(Some(&user), Some(&pass), None)?;
-
-    match resp.ok() {
+    match client.login(Some(&user), Some(&pass), None)?.ok() {
         true => println!("Login OK"),
-        false => panic!("Login Failed"),
+        false => eprintln!("Login Failed"),
     }
 
-    let resp = client.sc_status()?;
-
-    match resp.ok() {
+    match client.sc_status()?.ok() {
         true => println!("SC Status OK"),
-        false => panic!("SC Status Says Offline"),
+        false => eprintln!("SC Status Says Offline"),
+    }
+
+    let params = PatronStatusParams::new("ABCDEF");
+
+    match client.patron_status(&params)?.ok() {
+        true => println!("Patron is valid"),
+        false => eprintln!("Patron is not valid"),
     }
 
     /*

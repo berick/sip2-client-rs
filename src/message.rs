@@ -151,6 +151,14 @@ impl Message {
         }
     }
 
+    pub fn get_field_value(&self, code: &str) -> Option<String> {
+        if let Some(f) = self.fields().iter().filter(|f| f.code() == code).next() {
+            Some(f.value.to_string())
+        } else {
+            None
+        }
+    }
+
     pub fn spec(&self) -> &'static spec::Message {
         self.spec
     }
