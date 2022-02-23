@@ -8,6 +8,7 @@ pub use self::client::Client;
 pub use self::client::LoginParams;
 pub use self::client::PatronStatusParams;
 pub use self::client::PatronInfoParams;
+pub use self::client::ItemInfoParams;
 
 pub mod spec;
 pub mod util;

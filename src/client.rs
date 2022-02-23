@@ -19,6 +19,22 @@ impl LoginParams {
     }
 }
 
+pub struct ItemInfoParams {
+    pub item_id: String,
+    pub institution: Option<String>,
+    pub terminal_pwd: Option<String>,
+}
+
+impl ItemInfoParams {
+    pub fn new(item_id: &str) -> Self {
+        ItemInfoParams {
+            item_id: item_id.to_string(),
+            institution: None,
+            terminal_pwd: None,
+        }
+    }
+}
+
 pub struct PatronStatusParams {
     pub patron_id: String,
     pub patron_pwd: Option<String>,
@@ -41,9 +57,9 @@ pub struct PatronInfoParams {
     pub patron_id: String,
     pub patron_pwd: Option<String>,
 
-    /// Indicates which field (if any) of the summary string should
+    /// Indicates which position (if any) of the summary string should
     /// be set to 'Y' (i.e. activated).  Only one summary index may
-    /// be activated per message.
+    /// be activated per message.  Positions are zero-based.
     pub summary: Option<usize>,
 
     pub institution: Option<String>,
@@ -73,7 +89,9 @@ pub struct SipResponse {
 
     /// True if the message response indicates a success.
     ///
-    /// The definition of success varies per request type.
+    /// The definition of success varies per request type and may not
+    /// match the caller's requirements.  See the full message in
+    /// 'msg' to inspect the entire response.
     ok: bool,
 }
 
@@ -211,7 +229,6 @@ impl Client {
             }
         }
 
-        //let sum_str: String = summary.iter().map(|c| c.to_string()).collect().join("");
         let sum_str: String = summary.iter().collect::<String>();
 
         let mut req = Message::new(
@@ -240,6 +257,34 @@ impl Client {
 
         if let Some(bl_val) = resp.get_field_value(spec::F_VALID_PATRON.code) {
             if bl_val == "Y" {
+                return Ok(SipResponse {ok: true, msg: resp});
+            }
+        }
+
+        Ok(SipResponse {ok: false, msg: resp})
+    }
+
+    /// Send a item information request
+    ///
+    /// Sets ok=true if a title (AJ) value is present.  Oddly, there's no
+    /// specific "item does not exist" value in the Item Info Response.
+    pub fn item_info(&mut self, params: &ItemInfoParams) -> Result<SipResponse, Error> {
+
+        let mut req = Message::new(
+            &spec::M_ITEM_INFO,
+            vec![
+                FixedField::new(&spec::FF_DATE, &util::sip_date_now()).unwrap(),
+            ],
+            vec![Field::new(spec::F_ITEM_IDENT.code, &params.item_id)],
+        );
+
+        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution.as_deref());
+        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd.as_deref());
+
+        let resp = self.connection.sendrecv(&req)?;
+
+        if let Some(title_val) = resp.get_field_value(spec::F_TITLE_IDENT.code) {
+            if title_val != "" {
                 return Ok(SipResponse {ok: true, msg: resp});
             }
         }

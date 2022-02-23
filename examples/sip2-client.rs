@@ -78,10 +78,20 @@ fn main() -> Result<(), Error> {
 
         let mut params = PatronInfoParams::new(&patron_id);
         params.patron_pwd = options.opt_str("patron-pass");
+        params.summary = Some(2);
 
         match client.patron_info(&params)?.ok() {
             true => println!("Patron Info reports valid"),
             false => eprintln!("Patron Info reports not valid"),
+        }
+    }
+
+    if let Some(item_id) = options.opt_str("item-barcode") {
+        let params = ItemInfoParams::new(&item_id);
+
+        match client.item_info(&params)?.ok() {
+            true => println!("Item Info reports valid"),
+            false => eprintln!("Item Info reports not valid"),
         }
     }
 
