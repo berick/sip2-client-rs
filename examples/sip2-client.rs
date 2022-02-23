@@ -59,17 +59,24 @@ fn main() -> Result<(), Error> {
 
     // --- PATRON STUFF ---
 
-    let patron_barcode = options.opt_str("patron-barcode");
+    if let Some(patron_id) = options.opt_str("patron-barcode") {
 
-    if patron_barcode.is_some() {
-
-        let mut params = PatronStatusParams::new(&patron_barcode.unwrap());
+        let mut params = PatronStatusParams::new(&patron_id);
         params.patron_pwd = options.opt_str("patron-pass");
 
         match client.patron_status(&params)?.ok() {
             true => println!("Patron is valid"),
             false => eprintln!("Patron is not valid"),
         }
+
+        let mut params = PatronInfoParams::new(&patron_id);
+        params.patron_pwd = options.opt_str("patron-pass");
+
+        match client.patron_info(&params)?.ok() {
+            true => println!("Patron is valid"),
+            false => eprintln!("Patron is not valid"),
+        }
+
     }
 
     Ok(())

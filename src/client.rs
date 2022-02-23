@@ -20,16 +20,16 @@ impl LoginParams {
 }
 
 pub struct PatronStatusParams {
-    pub patron_barcode: String,
+    pub patron_id: String,
     pub patron_pwd: Option<String>,
     pub institution: Option<String>,
     pub terminal_pwd: Option<String>,
 }
 
 impl PatronStatusParams {
-    pub fn new(patron_barcode: &str) -> Self {
+    pub fn new(patron_id: &str) -> Self {
         PatronStatusParams {
-            patron_barcode: patron_barcode.to_string(),
+            patron_id: patron_id.to_string(),
             patron_pwd: None,
             institution: None,
             terminal_pwd: None,
@@ -37,8 +37,43 @@ impl PatronStatusParams {
     }
 }
 
+pub struct PatronInfoParams {
+    pub patron_id: String,
+    pub patron_pwd: Option<String>,
+
+    /// Indicates which field (if any) of the summary string should
+    /// be set to 'Y' (i.e. activated).  Only one summary index may
+    /// be activated per message.
+    pub summary: Option<usize>,
+
+    pub institution: Option<String>,
+    pub terminal_pwd: Option<String>,
+    pub start_item: Option<usize>,
+    pub end_item: Option<usize>,
+}
+
+impl PatronInfoParams {
+    pub fn new(patron_id: &str) -> Self {
+        PatronInfoParams {
+            patron_id: patron_id.to_string(),
+            patron_pwd: None,
+            summary: None,
+            institution: None,
+            terminal_pwd: None,
+            start_item: None,
+            end_item: None,
+        }
+    }
+}
+
 pub struct SipResponse {
+
+    /// The response message.
     msg: Message,
+
+    /// True if the message response indicates a success.
+    ///
+    /// The definition of success varies per request type.
     ok: bool,
 }
 
@@ -135,6 +170,9 @@ impl Client {
         }
     }
 
+    /// Send a patron status request
+    ///
+    /// Sets ok=true if the "valid patron" (BL) field is "Y"
     pub fn patron_status(&mut self, params: &PatronStatusParams) -> Result<SipResponse, Error> {
         let mut req = Message::new(
             &spec::M_PATRON_STATUS,
@@ -142,12 +180,61 @@ impl Client {
                 FixedField::new(&spec::FF_LANGUAGE, "000").unwrap(),
                 FixedField::new(&spec::FF_DATE, &util::sip_date_now()).unwrap(),
             ],
-            vec![Field::new(spec::F_PATRON_ID.code, &params.patron_barcode)],
+            vec![Field::new(spec::F_PATRON_ID.code, &params.patron_id)],
         );
 
         req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution.as_deref());
         req.maybe_add_field(spec::F_PATRON_PWD.code, params.patron_pwd.as_deref());
         req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd.as_deref());
+
+        let resp = self.connection.sendrecv(&req)?;
+
+        if let Some(bl_val) = resp.get_field_value(spec::F_VALID_PATRON.code) {
+            if bl_val == "Y" {
+                return Ok(SipResponse {ok: true, msg: resp});
+            }
+        }
+
+        Ok(SipResponse {ok: false, msg: resp})
+    }
+
+    /// Send a patron information request
+    ///
+    /// Sets ok=true if the "valid patron" (BL) field is "Y"
+    pub fn patron_info(&mut self, params: &PatronInfoParams) -> Result<SipResponse, Error> {
+
+        let mut summary: [char; 10] = [' '; 10];
+
+        if let Some(idx) = params.summary {
+            if idx < 10 {
+                summary[idx] = 'Y';
+            }
+        }
+
+        //let sum_str: String = summary.iter().map(|c| c.to_string()).collect().join("");
+        let sum_str: String = summary.iter().collect::<String>();
+
+        let mut req = Message::new(
+            &spec::M_PATRON_INFO,
+            vec![
+                FixedField::new(&spec::FF_LANGUAGE, "000").unwrap(),
+                FixedField::new(&spec::FF_DATE, &util::sip_date_now()).unwrap(),
+                FixedField::new(&spec::FF_SUMMARY, &sum_str).unwrap(),
+            ],
+            vec![Field::new(spec::F_PATRON_ID.code, &params.patron_id)],
+        );
+
+        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution.as_deref());
+        req.maybe_add_field(spec::F_PATRON_PWD.code, params.patron_pwd.as_deref());
+        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd.as_deref());
+
+        if let Some(v) = params.start_item {
+            req.add_field(spec::F_START_ITEM.code, &v.to_string());
+        }
+
+        if let Some(v) = params.end_item {
+            req.add_field(spec::F_END_ITEM.code, &v.to_string());
+        }
 
         let resp = self.connection.sendrecv(&req)?;
 

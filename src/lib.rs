@@ -7,6 +7,7 @@ pub use self::connection::Connection;
 pub use self::client::Client;
 pub use self::client::LoginParams;
 pub use self::client::PatronStatusParams;
+pub use self::client::PatronInfoParams;
 
 pub mod spec;
 pub mod util;
