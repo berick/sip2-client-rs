@@ -71,26 +71,45 @@ fn main() -> Result<(), Error> {
         let mut params = PatronStatusParams::new(&patron_id);
         params.patron_pwd = options.opt_str("patron-pass");
 
-        match client.patron_status(&params)?.ok() {
-            true => println!("Patron Status reports valid"),
-            false => eprintln!("Patron Status reports not valid"),
+        let resp = client.patron_status(&params)?;
+
+        match resp.ok() {
+            true => {
+                println!("Patron Info reports valid");
+                if let Some(name) = resp.msg().get_field_value("AE") {
+                    println!("Patron name is '{}'", name);
+                }
+            },
+            false => eprintln!("Patron Info reports not valid"),
         }
+
 
         let mut params = PatronInfoParams::new(&patron_id);
         params.patron_pwd = options.opt_str("patron-pass");
         params.summary = Some(2);
 
-        match client.patron_info(&params)?.ok() {
-            true => println!("Patron Info reports valid"),
+        let resp = client.patron_info(&params)?;
+
+        match resp.ok() {
+            true => {
+                println!("Patron Info reports valid");
+                if let Some(name) = resp.msg().get_field_value("AE") {
+                    println!("Patron name is '{}'", name);
+                }
+            },
             false => eprintln!("Patron Info reports not valid"),
         }
     }
 
     if let Some(item_id) = options.opt_str("item-barcode") {
         let params = ItemInfoParams::new(&item_id);
+        let resp = client.item_info(&params)?;
 
-        match client.item_info(&params)?.ok() {
-            true => println!("Item Info reports valid"),
+        match resp.ok() {
+            true => {
+                println!("Item Info reports valid");
+                println!("Item title is '{}'", resp.msg().get_field_value("AJ").unwrap());
+            },
             false => eprintln!("Item Info reports not valid"),
         }
     }
