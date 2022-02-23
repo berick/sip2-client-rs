@@ -1,7 +1,23 @@
 use std::str;
-use super::{spec, Message, Field, FixedField, util};
 use super::error::Error;
 use super::connection::Connection;
+use super::{spec, Message, Field, FixedField, util};
+
+pub struct LoginParams {
+    pub username: String,
+    pub password: String,
+    pub location: Option<String>,
+}
+
+impl LoginParams {
+    pub fn new(username: &str, password: &str) -> Self {
+        LoginParams {
+            username: username.to_string(),
+            password: password.to_string(),
+            location: None,
+        }
+    }
+}
 
 pub struct PatronStatusParams {
     pub patron_barcode: String,
@@ -59,10 +75,7 @@ impl Client {
     /// Login to the SIP server
     ///
     /// Sets ok=true if the OK fixed field is true.
-    pub fn login(&mut self,
-        username: Option<&str>,
-        password: Option<&str>,
-        location: Option<&str>) -> Result<SipResponse, Error> {
+    pub fn login(&mut self, params: &LoginParams) -> Result<SipResponse, Error> {
 
         let mut req = Message::new(
             &spec::M_LOGIN,
@@ -70,12 +83,13 @@ impl Client {
                 FixedField::new(&spec::FF_UID_ALGO, "0").unwrap(),
                 FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
             ],
-            vec![]
+            vec![
+                Field::new(spec::F_LOGIN_UID.code, &params.username),
+                Field::new(spec::F_LOGIN_PWD.code, &params.password),
+            ]
         );
 
-        req.maybe_add_field(spec::F_LOGIN_UID.code, username);
-        req.maybe_add_field(spec::F_LOGIN_PWD.code, password);
-        req.maybe_add_field(spec::F_LOCATION_CODE.code, location);
+        req.maybe_add_field(spec::F_LOCATION_CODE.code, params.location.as_deref());
 
         let resp = self.connection.sendrecv(&req)?;
 

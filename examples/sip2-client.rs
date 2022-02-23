@@ -45,7 +45,9 @@ fn main() -> Result<(), Error> {
 
     let mut client = Client::new(&host, iport)?;
 
-    match client.login(Some(&user), Some(&pass), None)?.ok() {
+    let params = LoginParams::new(&user, &pass);
+
+    match client.login(&params)?.ok() {
         true => println!("Login OK"),
         false => eprintln!("Login Failed"),
     }
