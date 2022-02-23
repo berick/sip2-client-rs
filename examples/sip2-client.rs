@@ -4,12 +4,18 @@ use sip2::*;
 
 const HELP_TEXT: &str = r#"
 
-Required Options:
+Required:
 
     --sip-host
     --sip-port
     --sip-user
     --sip-pass
+
+Optional:
+
+    --patron-barcode
+    --patron-pass
+    --item-barcode
 
 "#;
 
@@ -32,6 +38,7 @@ fn main() -> Result<(), Error> {
     // Optional
     opts.optopt("b", "patron-barcode", "Patron Barcode", "PATRON-BARCODE");
     opts.optopt("a", "patron-pass", "Patron Password", "PATRON-PASSWORD");
+    opts.optopt("i", "item-barcode", "Item Barcode", "ITEM-BARCODE");
 
     let options = opts.parse(&args[1..])
         .expect("Error parsing command line options");
@@ -65,18 +72,17 @@ fn main() -> Result<(), Error> {
         params.patron_pwd = options.opt_str("patron-pass");
 
         match client.patron_status(&params)?.ok() {
-            true => println!("Patron is valid"),
-            false => eprintln!("Patron is not valid"),
+            true => println!("Patron Status reports valid"),
+            false => eprintln!("Patron Status reports not valid"),
         }
 
         let mut params = PatronInfoParams::new(&patron_id);
         params.patron_pwd = options.opt_str("patron-pass");
 
         match client.patron_info(&params)?.ok() {
-            true => println!("Patron is valid"),
-            false => eprintln!("Patron is not valid"),
+            true => println!("Patron Info reports valid"),
+            false => eprintln!("Patron Info reports not valid"),
         }
-
     }
 
     Ok(())
