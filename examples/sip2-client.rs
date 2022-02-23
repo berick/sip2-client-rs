@@ -76,7 +76,7 @@ fn main() -> Result<(), Error> {
         match resp.ok() {
             true => {
                 println!("Patron Info reports valid");
-                if let Some(name) = resp.msg().get_field_value("AE") {
+                if let Some(name) = resp.value("AE") {
                     println!("Patron name is '{}'", name);
                 }
             },
@@ -93,13 +93,15 @@ fn main() -> Result<(), Error> {
         match resp.ok() {
             true => {
                 println!("Patron Info reports valid");
-                if let Some(name) = resp.msg().get_field_value("AE") {
+                if let Some(name) = resp.value("AE") {
                     println!("Patron name is '{}'", name);
                 }
             },
             false => eprintln!("Patron Info reports not valid"),
         }
     }
+
+    // ----- Item Stuff -----
 
     if let Some(item_id) = options.opt_str("item-barcode") {
         let params = ItemInfoParams::new(&item_id);
@@ -108,7 +110,7 @@ fn main() -> Result<(), Error> {
         match resp.ok() {
             true => {
                 println!("Item Info reports valid");
-                println!("Item title is '{}'", resp.msg().get_field_value("AJ").unwrap());
+                println!("Item title is '{}'", resp.value("AJ").unwrap());
             },
             false => eprintln!("Item Info reports not valid"),
         }
