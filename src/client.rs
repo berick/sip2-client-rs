@@ -27,7 +27,17 @@ impl Client {
     /// Login to the SIP server
     ///
     /// Sets ok=true if the OK fixed field is true.
-    pub fn login(&mut self, params: &LoginParams) -> Result<SipResponse, Error> {
+    pub fn login(&mut self, params: &ParamBuilder) -> Result<SipResponse, Error> {
+
+        let user = match params.sip_user() {
+            Some(u) => u,
+            _ =>  return Err(Error::MissingParamsError)
+        };
+
+        let pass = match params.sip_pass() {
+            Some(u) => u,
+            _ =>  return Err(Error::MissingParamsError)
+        };
 
         let mut req = Message::new(
             &spec::M_LOGIN,
@@ -36,12 +46,13 @@ impl Client {
                 FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
             ],
             vec![
-                Field::new(spec::F_LOGIN_UID.code, params.sip_user()),
-                Field::new(spec::F_LOGIN_PWD.code, params.sip_pass()),
+                Field::new(spec::F_LOGIN_UID.code, user),
+                Field::new(spec::F_LOGIN_PWD.code, pass),
             ]
         );
 
-        req.maybe_add_field(spec::F_LOCATION_CODE.code, params.location());
+        req.maybe_add_field(
+            spec::F_LOCATION_CODE.code, params.location().as_deref());
 
         let resp = self.connection.sendrecv(&req)?;
 
@@ -90,19 +101,25 @@ impl Client {
     /// Send a patron status request
     ///
     /// Sets ok=true if the "valid patron" (BL) field is "Y"
-    pub fn patron_status(&mut self, params: &PatronStatusParams) -> Result<SipResponse, Error> {
+    pub fn patron_status(&mut self, params: &ParamBuilder) -> Result<SipResponse, Error> {
+
+        let patron_id = match params.patron_id() {
+            Some(p) => p,
+            _ => return Err(Error::MissingParamsError),
+        };
+
         let mut req = Message::new(
             &spec::M_PATRON_STATUS,
             vec![
                 FixedField::new(&spec::FF_LANGUAGE, "000").unwrap(),
                 FixedField::new(&spec::FF_DATE, &util::sip_date_now()).unwrap(),
             ],
-            vec![Field::new(spec::F_PATRON_ID.code, &params.patron_id)],
+            vec![Field::new(spec::F_PATRON_ID.code, patron_id)],
         );
 
-        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution.as_deref());
-        req.maybe_add_field(spec::F_PATRON_PWD.code, params.patron_pwd.as_deref());
-        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd.as_deref());
+        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution().as_deref());
+        req.maybe_add_field(spec::F_PATRON_PWD.code, params.patron_pwd().as_deref());
+        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd().as_deref());
 
         let resp = self.connection.sendrecv(&req)?;
 
@@ -118,11 +135,16 @@ impl Client {
     /// Send a patron information request
     ///
     /// Sets ok=true if the "valid patron" (BL) field is "Y"
-    pub fn patron_info(&mut self, params: &PatronInfoParams) -> Result<SipResponse, Error> {
+    pub fn patron_info(&mut self, params: &ParamBuilder) -> Result<SipResponse, Error> {
+
+        let patron_id = match params.patron_id() {
+            Some(p) => p,
+            None => return Err(Error::MissingParamsError),
+        };
 
         let mut summary: [char; 10] = [' '; 10];
 
-        if let Some(idx) = params.summary {
+        if let Some(idx) = *params.summary() {
             if idx < 10 {
                 summary[idx] = 'Y';
             }
@@ -137,18 +159,18 @@ impl Client {
                 FixedField::new(&spec::FF_DATE, &util::sip_date_now()).unwrap(),
                 FixedField::new(&spec::FF_SUMMARY, &sum_str).unwrap(),
             ],
-            vec![Field::new(spec::F_PATRON_ID.code, &params.patron_id)],
+            vec![Field::new(spec::F_PATRON_ID.code, patron_id)],
         );
 
-        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution.as_deref());
-        req.maybe_add_field(spec::F_PATRON_PWD.code, params.patron_pwd.as_deref());
-        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd.as_deref());
+        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution().as_deref());
+        req.maybe_add_field(spec::F_PATRON_PWD.code, params.patron_pwd().as_deref());
+        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd().as_deref());
 
-        if let Some(v) = params.start_item {
+        if let Some(v) = params.start_item() {
             req.add_field(spec::F_START_ITEM.code, &v.to_string());
         }
 
-        if let Some(v) = params.end_item {
+        if let Some(v) = params.end_item() {
             req.add_field(spec::F_END_ITEM.code, &v.to_string());
         }
 
@@ -167,18 +189,23 @@ impl Client {
     ///
     /// Sets ok=true if a title (AJ) value is present.  Oddly, there's no
     /// specific "item does not exist" value in the Item Info Response.
-    pub fn item_info(&mut self, params: &ItemInfoParams) -> Result<SipResponse, Error> {
+    pub fn item_info(&mut self, params: &ParamBuilder) -> Result<SipResponse, Error> {
+
+        let item_id = match params.item_id() {
+            Some(id) => id,
+            None => return Err(Error::MissingParamsError),
+        };
 
         let mut req = Message::new(
             &spec::M_ITEM_INFO,
             vec![
                 FixedField::new(&spec::FF_DATE, &util::sip_date_now()).unwrap(),
             ],
-            vec![Field::new(spec::F_ITEM_IDENT.code, &params.item_id)],
+            vec![Field::new(spec::F_ITEM_IDENT.code, &item_id)],
         );
 
-        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution.as_deref());
-        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd.as_deref());
+        req.maybe_add_field(spec::F_INSTITUTION_ID.code, params.institution().as_deref());
+        req.maybe_add_field(spec::F_TERMINAL_PWD.code, params.terminal_pwd().as_deref());
 
         let resp = self.connection.sendrecv(&req)?;
 
@@ -189,6 +216,45 @@ impl Client {
         }
 
         Ok(SipResponse::new(resp, false))
+    }
+}
+
+/// Wrapper for holding the SIP response message and a simplistic
+/// "OK" flag.
+pub struct SipResponse {
+
+    /// The response message.
+    msg: Message,
+
+    /// True if the message response indicates a success.
+    ///
+    /// The definition of success varies per request type and may not
+    /// match the caller's requirements.  See the full message in
+    /// 'msg' to inspect the entire response.
+    ok: bool,
+}
+
+impl SipResponse {
+
+    pub fn new(msg: Message, ok: bool) -> Self {
+        SipResponse {
+            msg,
+            ok,
+        }
+    }
+
+    /// Shortcut for this.resp.msg().get_field_value(code)
+    pub fn value(&self, code: &str) -> Option<String> {
+        self.msg().get_field_value(code)
+    }
+}
+
+impl SipResponse {
+    pub fn ok(&self) -> bool {
+        self.ok
+    }
+    pub fn msg(&self) -> &Message {
+        &self.msg
     }
 }
 

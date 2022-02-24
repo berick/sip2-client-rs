@@ -9,6 +9,7 @@ pub enum Error {
     UnknownMessageError,
     NetworkError,
     NoResponseError,
+    MissingParamsError,
 }
 
 use self::Error::*;
@@ -31,6 +32,7 @@ impl fmt::Display for Error {
             MessageFormatError => write!(f, "sip message format error"),
             UnknownMessageError => write!(f, "unknown sip message type"),
             NoResponseError => write!(f, "no response was received"),
+            MissingParamsError => write!(f, "missing needed parameter values"),
         }
     }
 }

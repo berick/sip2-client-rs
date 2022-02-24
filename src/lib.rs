@@ -6,10 +6,6 @@ pub use self::connection::Connection;
 
 pub use self::client::Client;
 pub use self::params::ParamBuilder;
-pub use self::params::LoginParams;
-pub use self::params::PatronStatusParams;
-pub use self::params::PatronInfoParams;
-pub use self::params::ItemInfoParams;
 
 pub mod spec;
 pub mod util;

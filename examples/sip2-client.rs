@@ -58,7 +58,7 @@ fn main() -> Result<(), Error> {
         builder.set_location(&location);
     }
 
-    match client.login(&builder.to_login())?.ok() {
+    match client.login(&builder)?.ok() {
         true => println!("Login OK"),
         false => eprintln!("Login Failed"),
     }
@@ -72,10 +72,12 @@ fn main() -> Result<(), Error> {
 
     if let Some(patron_id) = options.opt_str("patron-barcode") {
 
-        let mut params = PatronStatusParams::new(&patron_id);
-        params.patron_pwd = options.opt_str("patron-pass");
+        builder.set_patron_id(&patron_id);
+        if let Some(pass) = options.opt_str("patron-pass") {
+            builder.set_patron_pwd(&pass);
+        }
 
-        let resp = client.patron_status(&params)?;
+        let resp = client.patron_status(&builder)?;
 
         match resp.ok() {
             true => {
@@ -88,11 +90,9 @@ fn main() -> Result<(), Error> {
         }
 
 
-        let mut params = PatronInfoParams::new(&patron_id);
-        params.patron_pwd = options.opt_str("patron-pass");
-        params.summary = Some(2);
+        builder.set_summary(2);
 
-        let resp = client.patron_info(&params)?;
+        let resp = client.patron_info(&builder)?;
 
         match resp.ok() {
             true => {
@@ -108,8 +108,8 @@ fn main() -> Result<(), Error> {
     // ----- Item Stuff -----
 
     if let Some(item_id) = options.opt_str("item-barcode") {
-        let params = ItemInfoParams::new(&item_id);
-        let resp = client.item_info(&params)?;
+        builder.set_item_id(&item_id);
+        let resp = client.item_info(&builder)?;
 
         match resp.ok() {
             true => {
