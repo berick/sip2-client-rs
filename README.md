@@ -4,8 +4,10 @@ Rust SIP2 Client Library
 
 * The sip2::client API provides canned request types making common SIP2 
   tasks simple to implement.
-* The sip2::Connection API provides complete control of the outbound messages.
-* Both APIs return the response message to the caller for detailed analysis.
+* The sip2::Connection API provides complete control of how each message
+  is structured.
+* Both APIs return the response message to the caller.
+* See examples/sip2-client.rs for more examples.
 
 ## Client API example
 
