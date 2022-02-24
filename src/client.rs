@@ -3,6 +3,9 @@ use super::error::Error;
 use super::connection::Connection;
 use super::{spec, Message, Field, FixedField, util};
 
+/// A set of structs for capturing sets of required and optional
+/// SIP request parameters.
+
 pub struct LoginParams {
     pub username: String,
     pub password: String,
