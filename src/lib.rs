@@ -5,10 +5,10 @@ pub use self::message::Message;
 pub use self::connection::Connection;
 
 pub use self::client::Client;
-pub use self::client::LoginParams;
-pub use self::client::PatronStatusParams;
-pub use self::client::PatronInfoParams;
-pub use self::client::ItemInfoParams;
+pub use self::params::LoginParams;
+pub use self::params::PatronStatusParams;
+pub use self::params::PatronInfoParams;
+pub use self::params::ItemInfoParams;
 
 pub mod spec;
 pub mod util;
@@ -16,6 +16,7 @@ pub mod util;
 mod error;
 mod message;
 mod connection;
+mod params;
 mod client;
 
 #[cfg(test)]
