@@ -1,6 +1,7 @@
 # sip2-client-rs
 
-Rust SIP2 Client Library
+Rust [SIP2](https://en.wikipedia.org/wiki/Standard_Interchange_Protocol)
+Client Library
 
 * The sip2::client API provides canned request types making common SIP2 
   tasks simple to implement.
