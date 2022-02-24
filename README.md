@@ -11,6 +11,7 @@ Rust SIP2 Client Library
 
 
 ```rs
+use sip2::*;
 
 let user = "sip-user";
 let pass = "sip-pass";
@@ -18,8 +19,11 @@ let pass = "sip-pass";
 let mut client = Client::new("localhost", 6001)?;
 
 let params = LoginParams::new(&user, &pass);
+let resp = client.login(&params)?;
 
-match client.login(&params)?.ok() {
+prinln!("Received: {}", resp.msg());
+
+match resp.ok() {
     true => println!("Login OK"),
     false => eprintln!("Login Failed"),
 }
@@ -29,6 +33,7 @@ match client.login(&params)?.ok() {
 ## Connection API Example
 
 ```rs
+use sip2::*;
 
 let con = Connection::new("localhost:6001")?;
 
@@ -49,6 +54,8 @@ let req = Message::new(
 
 let resp = con.sendrecv(&req)?;
 
+println!("Received: {}", resp);
+
 if resp.spec().code == spec::M_LOGIN_RESP.code
     && resp.fixed_fields().len() == 1
     && resp.fixed_fields()[0].value() == "1" {
@@ -59,5 +66,6 @@ if resp.spec().code == spec::M_LOGIN_RESP.code
 
     println!("Login Failed");
 }
+
 ```
 
