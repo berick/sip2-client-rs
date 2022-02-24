@@ -18,10 +18,10 @@ use sip2::*;
 let user = "sip-user";
 let pass = "sip-pass";
 
-let mut client = Client::new("localhost", 6001)?;
+let mut client = Client::new("localhost", 6001).unwrap();
 
 let params = LoginParams::new(&user, &pass);
-let resp = client.login(&params)?;
+let resp = client.login(&params).unwrap();
 
 prinln!("Received: {}", resp.msg());
 
@@ -37,7 +37,7 @@ match resp.ok() {
 ```rs
 use sip2::*;
 
-let con = Connection::new("localhost:6001")?;
+let con = Connection::new("localhost:6001").unwrap();
 
 let user = "sip-user";
 let pass = "sip-pass";
@@ -54,7 +54,7 @@ let req = Message::new(
     ]
 );
 
-let resp = con.sendrecv(&req)?;
+let resp = con.sendrecv(&req).unwrap();
 
 println!("Received: {}", resp);
 
