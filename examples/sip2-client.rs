@@ -25,8 +25,6 @@ fn print_err(err: &str) -> String {
 
 fn main() -> Result<(), Error> {
 
-    env_logger::init();
-
     let args: Vec<String> = env::args().collect();
     let mut opts = getopts::Options::new();
 
@@ -39,6 +37,7 @@ fn main() -> Result<(), Error> {
     opts.optopt("b", "patron-barcode", "Patron Barcode", "PATRON-BARCODE");
     opts.optopt("a", "patron-pass", "Patron Password", "PATRON-PASSWORD");
     opts.optopt("i", "item-barcode", "Item Barcode", "ITEM-BARCODE");
+    opts.optopt("l", "location-code", "Location Code", "LOCATION-CODE");
 
     let options = opts.parse(&args[1..])
         .expect("Error parsing command line options");
@@ -52,9 +51,14 @@ fn main() -> Result<(), Error> {
 
     let mut client = Client::new(&host, iport)?;
 
-    let params = LoginParams::new(&user, &pass);
+    let mut builder = ParamBuilder::new();
+    builder.set_sip_user(&user).set_sip_pass(&pass);
 
-    match client.login(&params)?.ok() {
+    if let Some(location) = options.opt_str("location-code") {
+        builder.set_location(&location);
+    }
+
+    match client.login(&builder.to_login())?.ok() {
         true => println!("Login OK"),
         false => eprintln!("Login Failed"),
     }

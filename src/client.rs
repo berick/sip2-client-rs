@@ -36,12 +36,12 @@ impl Client {
                 FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
             ],
             vec![
-                Field::new(spec::F_LOGIN_UID.code, &params.username),
-                Field::new(spec::F_LOGIN_PWD.code, &params.password),
+                Field::new(spec::F_LOGIN_UID.code, params.sip_user()),
+                Field::new(spec::F_LOGIN_PWD.code, params.sip_pass()),
             ]
         );
 
-        req.maybe_add_field(spec::F_LOCATION_CODE.code, params.location.as_deref());
+        req.maybe_add_field(spec::F_LOCATION_CODE.code, params.location());
 
         let resp = self.connection.sendrecv(&req)?;
 

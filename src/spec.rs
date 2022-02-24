@@ -1,6 +1,6 @@
 use std::fmt;
 
-//! SIP2 Specification as a collection of static values.
+/// SIP2 Specification as a collection of static values.
 
 pub const SIP_PROTOCOL_VERSION: &str = "2.00";
 pub const LINE_TERMINATOR: &str = "\r";
