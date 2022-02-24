@@ -4,6 +4,10 @@ use super::error::Error;
 use super::spec;
 use super::util;
 
+/// Fixed field with spec and value.
+///
+/// Since fixed fields have specific length requirements, a well-known
+/// spec::FixedField is required
 pub struct FixedField {
     spec: &'static spec::FixedField,
     value: String
@@ -44,7 +48,10 @@ impl FixedField {
     }
 }
 
-/// Models a SIP Field
+/// SIP Field with code and value.
+///
+/// To support passing field types that are not known at compile time,
+/// store the message code instead of a ref to a well-known spec::Field.
 pub struct Field {
 
     /// 2-character code
@@ -91,6 +98,7 @@ impl Field {
     }
 }
 
+/// SIP message complete with spec::Message, fixed fields, and fields.
 pub struct Message {
 
     /// Link to the specification for this message type
@@ -114,6 +122,8 @@ impl Message {
             fields,
         };
 
+        // Sorting fields allows for consistent message layout,
+        // which is useful for debugging purposes.
         msg.sort_fields();
 
         msg
@@ -144,6 +154,7 @@ impl Message {
         self.sort_fields();
     }
 
+    /// Adds a field to a SIP message if the provided value is not None.
     pub fn maybe_add_field(&mut self, code: &str, value: Option<&str>) {
         if let Some(v) = value {
             self.fields.push(Field::new(code, v));
@@ -151,6 +162,7 @@ impl Message {
         }
     }
 
+    /// Return the first vale with the specified field code.
     pub fn get_field_value(&self, code: &str) -> Option<String> {
         if let Some(f) = self.fields().iter().filter(|f| f.code() == code).next() {
             Some(f.value.to_string())
@@ -274,6 +286,7 @@ impl Message {
     }
 }
 
+/// Message display support for logging / debugging.
 impl fmt::Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 

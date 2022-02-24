@@ -1,5 +1,7 @@
 use std::fmt;
 
+//! SIP2 Specification as a collection of static values.
+
 pub const SIP_PROTOCOL_VERSION: &str = "2.00";
 pub const LINE_TERMINATOR: &str = "\r";
 pub const SIP_DATE_FORMAT: &str = "%Y%m%d    %H%M%S";

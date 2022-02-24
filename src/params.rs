@@ -1,6 +1,6 @@
 use super::Message;
 
-/// Sructs for capturing sets of required and optional
+/// Sructs for capturing collections of required and optional
 /// SIP request parameters and a sip response wrapper.
 
 pub struct LoginParams {
