@@ -16,12 +16,16 @@ Client Library
 ```rs
 use sip2::*;
 
+let host = "localhost:6001";
 let user = "sip-user";
 let pass = "sip-pass";
 
-let mut client = Client::new("localhost", 6001).unwrap();
+let mut client = Client::new(host).unwrap();
 
-let params = LoginParams::new(&user, &pass);
+let params = ParamSet::new();
+params.set_sip_user(user);
+params.set_sip_pass(pass);
+
 let resp = client.login(&params).unwrap();
 
 prinln!("Received: {}", resp.msg());

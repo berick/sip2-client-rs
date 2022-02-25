@@ -5,7 +5,7 @@ pub use self::message::Message;
 pub use self::connection::Connection;
 
 pub use self::client::Client;
-pub use self::params::ParamBuilder;
+pub use self::params::ParamSet;
 
 pub mod spec;
 pub mod util;

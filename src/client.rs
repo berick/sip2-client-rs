@@ -14,10 +14,8 @@ pub struct Client {
 impl Client {
 
     /// Creates a new SIP client and opens the TCP connection to the server.
-    pub fn new(host: &str, port: u32) -> Result<Self, Error>  {
-        let uri = String::from(host) + ":" + &(port.to_string());
-        let con = Connection::new(&uri)?;
-        Ok(Client { connection: con })
+    pub fn new(host: &str) -> Result<Self, Error>  {
+        Ok(Client { connection: Connection::new(host)? })
     }
 
     pub fn disconnect(&self) -> Result<(), Error> {
@@ -27,7 +25,7 @@ impl Client {
     /// Login to the SIP server
     ///
     /// Sets ok=true if the OK fixed field is true.
-    pub fn login(&mut self, params: &ParamBuilder) -> Result<SipResponse, Error> {
+    pub fn login(&mut self, params: &ParamSet) -> Result<SipResponse, Error> {
 
         let user = match params.sip_user() {
             Some(u) => u,
@@ -101,7 +99,7 @@ impl Client {
     /// Send a patron status request
     ///
     /// Sets ok=true if the "valid patron" (BL) field is "Y"
-    pub fn patron_status(&mut self, params: &ParamBuilder) -> Result<SipResponse, Error> {
+    pub fn patron_status(&mut self, params: &ParamSet) -> Result<SipResponse, Error> {
 
         let patron_id = match params.patron_id() {
             Some(p) => p,
@@ -135,7 +133,7 @@ impl Client {
     /// Send a patron information request
     ///
     /// Sets ok=true if the "valid patron" (BL) field is "Y"
-    pub fn patron_info(&mut self, params: &ParamBuilder) -> Result<SipResponse, Error> {
+    pub fn patron_info(&mut self, params: &ParamSet) -> Result<SipResponse, Error> {
 
         let patron_id = match params.patron_id() {
             Some(p) => p,
@@ -189,7 +187,7 @@ impl Client {
     ///
     /// Sets ok=true if a title (AJ) value is present.  Oddly, there's no
     /// specific "item does not exist" value in the Item Info Response.
-    pub fn item_info(&mut self, params: &ParamBuilder) -> Result<SipResponse, Error> {
+    pub fn item_info(&mut self, params: &ParamSet) -> Result<SipResponse, Error> {
 
         let item_id = match params.item_id() {
             Some(id) => id,

@@ -6,8 +6,7 @@ const HELP_TEXT: &str = r#"
 
 Required:
 
-    --sip-host
-    --sip-port
+    --sip-host <host:port>
     --sip-user
     --sip-pass
 
@@ -29,13 +28,12 @@ fn main() -> Result<(), Error> {
     let mut opts = getopts::Options::new();
 
     opts.optopt("h", "sip-host", "SIP Host", "HOST");
-    opts.optopt("p", "sip-port", "SIP Port", "PORT");
     opts.optopt("u", "sip-user", "SIP User", "USER");
     opts.optopt("w", "sip-pass", "SIP pass", "PASSWORD");
 
     // Optional
     opts.optopt("b", "patron-barcode", "Patron Barcode", "PATRON-BARCODE");
-    opts.optopt("a", "patron-pass", "Patron Password", "PATRON-PASSWORD");
+    opts.optopt("p", "patron-pass", "Patron Password", "PATRON-PASSWORD");
     opts.optopt("i", "item-barcode", "Item Barcode", "ITEM-BARCODE");
     opts.optopt("l", "location-code", "Location Code", "LOCATION-CODE");
 
@@ -43,15 +41,12 @@ fn main() -> Result<(), Error> {
         .expect("Error parsing command line options");
 
     let host = options.opt_str("sip-host").expect(&print_err("--sip-host required"));
-    let port = options.opt_str("sip-port").expect(&print_err("--sip-port required"));
     let user = options.opt_str("sip-user").expect(&print_err("--sip-user required"));
     let pass = options.opt_str("sip-pass").expect(&print_err("--sip-pass required"));
 
-    let iport = port.parse::<u32>().expect(HELP_TEXT);
+    let mut client = Client::new(&host)?;
 
-    let mut client = Client::new(&host, iport)?;
-
-    let mut builder = ParamBuilder::new();
+    let mut builder = ParamSet::new();
     builder.set_sip_user(&user).set_sip_pass(&pass);
 
     if let Some(location) = options.opt_str("location-code") {

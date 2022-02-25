@@ -1,10 +1,9 @@
 #![allow(dead_code)]
 
-/// SIP request parameter builder which collects common required
-/// and optoinal sip request parameters.
+/// Collection of friendly-named SIP request parameters for common tasks.
 
 #[derive(Debug, Clone)]
-pub struct ParamBuilder {
+pub struct ParamSet {
     institution: Option<String>,
     terminal_pwd: Option<String>,
     sip_user: Option<String>,
@@ -16,16 +15,16 @@ pub struct ParamBuilder {
     start_item: Option<usize>,
     end_item: Option<usize>,
 
-    /// Indicates which position (if any) of the summary string should
-    /// be set to 'Y' (i.e. activated).  Only one summary index may
-    /// be activated per message.  Positions are zero-based.
+    /// Indicates which position (if any) of the patron summary string
+    /// that should be set to 'Y' (i.e. activated).  Only one summary
+    /// index may be activated per message.  Positions are zero-based.
     summary: Option<usize>,
 }
 
-impl ParamBuilder {
+impl ParamSet {
 
     pub fn new() -> Self {
-        ParamBuilder {
+        ParamSet {
             institution: None,
             terminal_pwd: None,
             sip_user: None,
