@@ -1,6 +1,7 @@
 use std::error;
 use std::fmt;
 
+/// Errors related to SIP2 Clients
 #[derive(Debug)]
 pub enum Error {
     DateFormatError,
