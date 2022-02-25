@@ -98,7 +98,7 @@ impl Field {
     }
 }
 
-/// SIP message complete with spec::Message, fixed fields, and fields.
+/// SIP message complete with message code, fixed fields, and fields.
 pub struct Message {
 
     /// Link to the specification for this message type

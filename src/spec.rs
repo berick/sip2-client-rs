@@ -1,11 +1,11 @@
+//! SIP2 Specification as a collection of static values.
 use std::fmt;
-
-/// SIP2 Specification as a collection of static values.
 
 pub const SIP_PROTOCOL_VERSION: &str = "2.00";
 pub const LINE_TERMINATOR: &str = "\r";
 pub const SIP_DATE_FORMAT: &str = "%Y%m%d    %H%M%S";
 
+/// Fixed field definition with label and field length
 pub struct FixedField {
     pub label: &'static str,
     pub length: usize,
@@ -17,6 +17,7 @@ impl fmt::Display for FixedField {
     }
 }
 
+/// Field definition with label and 2-character code.
 pub struct Field {
     pub label: &'static str,
     pub code: &'static str,
@@ -118,6 +119,11 @@ impl Field {
     }
 }
 
+/// SIP message definition with 2-character code, label, and
+/// fixed fields.
+///
+/// No attempt is made to specify which spec::Field's are used for
+/// each Message since use in the wild varies wildly.
 pub struct Message {
     pub code: &'static str,
     pub label: &'static str,
@@ -307,6 +313,7 @@ pub const F_CHECK_NUMBER            : F = F { code: "RN", label: "check number" 
 
 pub const EMPTY: &[&FixedField; 0] = &[];
 
+/// Message 99
 pub const M_SC_STATUS: Message = Message {
     code: "99",
     label: "SC Status",
@@ -317,6 +324,7 @@ pub const M_SC_STATUS: Message = Message {
     ],
 };
 
+/// Message 98
 pub const M_ACS_STATUS: Message = Message {
     code: "98",
     label: "ACS Status",
@@ -334,24 +342,28 @@ pub const M_ACS_STATUS: Message = Message {
     ],
 };
 
+/// Message 93
 pub const M_LOGIN: Message = Message {
     code: "93",
     label: "Login Request",
     fixed_fields: &[&FF_UID_ALGO, &FF_PWD_ALGO],
 };
 
+/// Message 94
 pub const M_LOGIN_RESP: Message = Message {
     code: "94",
     label: "Login Response",
     fixed_fields: &[&FF_OK],
 };
 
+/// Message 17
 pub const M_ITEM_INFO: Message = Message {
     code: "17",
     label: "Item Information Request",
     fixed_fields: &[&FF_DATE],
 };
 
+/// Message 18
 pub const M_ITEM_INFO_RESP: Message = Message {
     code: "18",
     label: "Item Information Response",
@@ -363,6 +375,7 @@ pub const M_ITEM_INFO_RESP: Message = Message {
     ],
 };
 
+/// Message 23
 pub const M_PATRON_STATUS: Message = Message {
     code: "23",
     label: "Patron Status Request",
@@ -372,6 +385,7 @@ pub const M_PATRON_STATUS: Message = Message {
     ],
 };
 
+/// Message 24
 pub const M_PATRON_STATUS_RESP: Message = Message {
     code: "24",
     label: "Patron Status Response",
@@ -382,6 +396,7 @@ pub const M_PATRON_STATUS_RESP: Message = Message {
     ],
 };
 
+/// Message 63
 pub const M_PATRON_INFO: Message = Message {
     code: "63",
     label: "Patron Information",
@@ -392,6 +407,7 @@ pub const M_PATRON_INFO: Message = Message {
     ],
 };
 
+/// Message 64
 pub const M_PATRON_INFO_RESP: Message = Message {
     code: "64",
     label: "Patron Information Response",
@@ -408,6 +424,7 @@ pub const M_PATRON_INFO_RESP: Message = Message {
     ],
 };
 
+/// Message 11
 pub const M_CHECKOUT: Message = Message {
     code: "11",
     label: "Checkout Request",
@@ -419,6 +436,7 @@ pub const M_CHECKOUT: Message = Message {
     ],
 };
 
+/// Message 12
 pub const M_CHECKOUT_RESP: Message = Message {
     code: "12",
     label: "Checkout Response",
@@ -431,6 +449,7 @@ pub const M_CHECKOUT_RESP: Message = Message {
     ],
 };
 
+/// Message 29
 pub const M_RENEW: Message = Message {
     code: "29",
     label: "Renew Request",
@@ -442,9 +461,10 @@ pub const M_RENEW: Message = Message {
     ],
 };
 
+/// Message 30
 pub const M_RENEW_RESP: Message = Message {
-    code: "12",
-    label: "Checkout Response",
+    code: "30",
+    label: "Renew Response",
     fixed_fields: &[
         &FF_OK,
         &FF_RENEW_OK,
@@ -454,12 +474,14 @@ pub const M_RENEW_RESP: Message = Message {
     ],
 };
 
+/// Message 65
 pub const M_RENEW_ALL: Message = Message {
     code: "65",
     label: "Renew All Request",
     fixed_fields: &[&FF_DATE],
 };
 
+/// Message 66
 pub const M_RENEW_ALL_RESP: Message = Message {
     code: "66",
     label: "Renew All Response",
@@ -471,6 +493,7 @@ pub const M_RENEW_ALL_RESP: Message = Message {
     ],
 };
 
+/// Message 09
 pub const M_CHECKIN: Message = Message {
     code: "09",
     label: "Checkin Request",
@@ -481,6 +504,7 @@ pub const M_CHECKIN: Message = Message {
     ]
 };
 
+/// Message 10
 pub const M_CHECKIN_RESP: Message = Message {
     code: "10",
     label: "Checkin Response",
@@ -493,6 +517,7 @@ pub const M_CHECKIN_RESP: Message = Message {
     ]
 };
 
+/// Message 15
 pub const M_HOLD: Message = Message {
     code: "15",
     label: "Hold Request",
@@ -502,6 +527,7 @@ pub const M_HOLD: Message = Message {
     ]
 };
 
+/// Message 16
 pub const M_HOLD_RESP: Message = Message {
     code: "16",
     label: "Hold Response",
@@ -513,6 +539,7 @@ pub const M_HOLD_RESP: Message = Message {
 };
 
 
+/// Message 37
 pub const M_FEE_PAID: Message = Message {
     code: "37",
     label: "Fee Paid",
@@ -524,6 +551,7 @@ pub const M_FEE_PAID: Message = Message {
     ]
 };
 
+/// Message 38
 pub const M_FEE_PAID_RESP: Message = Message {
     code: "38",
     label: "Fee Paid Response",

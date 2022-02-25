@@ -6,6 +6,9 @@ use super::{Message};
 use super::error::Error;
 use super::spec;
 
+/// Manages a TCP connection to a SIP server and handles message sending
+/// and receiving.
+
 const READ_BUFSIZE: usize = 256;
 
 pub struct Connection {
