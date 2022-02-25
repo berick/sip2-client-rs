@@ -10,6 +10,14 @@ Client Library
 * Both APIs return the response message to the caller.
 * See examples/sip2-client.rs for more examples.
 
+## Running the example
+
+```sh
+cargo run --example sip2-client -- --sip-host sip.example.org:6001 \
+    --sip-user sip-login --sip-pass sip-password \
+    --patron-barcode 1234567890 --item-barcode 0987654321
+```
+
 ## Client API example
 
 

@@ -6,6 +6,8 @@ use super::params::*;
 
 /// Wrapper for Connection which provides a simpler interface for some
 /// common SIP2 actions.
+///
+/// This is not a complete set of friendly-ified requests.  Just a start.
 
 pub struct Client {
     connection: Connection,

@@ -22,7 +22,7 @@ fn print_err(err: &str) -> String {
     format!("\n\nError: {}\n\n------{}", err, HELP_TEXT)
 }
 
-fn main() -> Result<(), Error> {
+fn main() {
 
     let args: Vec<String> = env::args().collect();
     let mut opts = getopts::Options::new();
@@ -44,21 +44,27 @@ fn main() -> Result<(), Error> {
     let user = options.opt_str("sip-user").expect(&print_err("--sip-user required"));
     let pass = options.opt_str("sip-pass").expect(&print_err("--sip-pass required"));
 
-    let mut client = Client::new(&host)?;
+    // Connect to the SIP server
+    let mut client = Client::new(&host).expect("Cannot Connect");
 
-    let mut builder = ParamSet::new();
-    builder.set_sip_user(&user).set_sip_pass(&pass);
+    // ParamSet can hold params for a variety of (but not all) SIP
+    // requests.  We can keep appending values and reuse the same
+    // paramset for all request below.
+    let mut params = ParamSet::new();
+    params.set_sip_user(&user).set_sip_pass(&pass);
 
     if let Some(location) = options.opt_str("location-code") {
-        builder.set_location(&location);
+        params.set_location(&location);
     }
 
-    match client.login(&builder)?.ok() {
+    // Login to the SIP server
+    match client.login(&params).expect("Login Error").ok() {
         true => println!("Login OK"),
         false => eprintln!("Login Failed"),
     }
 
-    match client.sc_status()?.ok() {
+    // Check the SIP server status
+    match client.sc_status().expect("SC Status Error").ok() {
         true => println!("SC Status OK"),
         false => eprintln!("SC Status Says Offline"),
     }
@@ -67,12 +73,13 @@ fn main() -> Result<(), Error> {
 
     if let Some(patron_id) = options.opt_str("patron-barcode") {
 
-        builder.set_patron_id(&patron_id);
+        params.set_patron_id(&patron_id);
         if let Some(pass) = options.opt_str("patron-pass") {
-            builder.set_patron_pwd(&pass);
+            params.set_patron_pwd(&pass);
         }
 
-        let resp = client.patron_status(&builder)?;
+        // Check patron status
+        let resp = client.patron_status(&params).expect("Patron Status Error");
 
         match resp.ok() {
             true => {
@@ -84,10 +91,10 @@ fn main() -> Result<(), Error> {
             false => eprintln!("Patron Info reports not valid"),
         }
 
+        params.set_summary(2); // Return details on "Charged Items"
 
-        builder.set_summary(2);
-
-        let resp = client.patron_info(&builder)?;
+        // Load patron info
+        let resp = client.patron_info(&params).expect("Patron Info Error");
 
         match resp.ok() {
             true => {
@@ -103,18 +110,19 @@ fn main() -> Result<(), Error> {
     // ----- Item Stuff -----
 
     if let Some(item_id) = options.opt_str("item-barcode") {
-        builder.set_item_id(&item_id);
-        let resp = client.item_info(&builder)?;
+        params.set_item_id(&item_id);
+
+        // Load item info
+        let resp = client.item_info(&params).expect("Item Info Failed");
 
         match resp.ok() {
             true => {
                 println!("Item Info reports valid");
-                println!("Item title is '{}'", resp.value("AJ").unwrap());
+                println!("Item title is '{}'",
+                    resp.value("AJ").expect("Item has no title"));
             },
             false => eprintln!("Item Info reports not valid"),
         }
     }
-
-    Ok(())
 }
 

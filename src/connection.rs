@@ -35,6 +35,7 @@ impl Connection {
         }
     }
 
+    /// Shutdown the TCP connection with the SIP server.
     pub fn disconnect(&self) -> Result<(), Error> {
         debug!("Connection::disconnect()");
 
@@ -47,6 +48,7 @@ impl Connection {
         }
     }
 
+    /// Send a SIP message
     pub fn send(&mut self, msg: &Message) -> Result<(), Error> {
 
         let msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
@@ -62,6 +64,9 @@ impl Connection {
         }
     }
 
+    /// Receive a SIP response.
+    ///
+    /// Blocks until a response is received.
     pub fn recv(&mut self) -> Result<Message, Error> {
 
         trace!("Connection::recv() waiting for response...");
