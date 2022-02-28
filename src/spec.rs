@@ -7,7 +7,16 @@ pub const SIP_DATE_FORMAT: &str = "%Y%m%d    %H%M%S";
 
 /// Fixed field definition with label and field length
 pub struct FixedField {
+
+    /// For documentation and debugging purposes.
+    ///
+    /// This value does not appear in any messages.
     pub label: &'static str,
+
+    /// Length of the fixed field.
+    ///
+    /// Fixed field values are always ASCII, this is essentially
+    /// the number of characters in the fixed field.
     pub length: usize,
 }
 
@@ -19,7 +28,13 @@ impl fmt::Display for FixedField {
 
 /// Field definition with label and 2-character code.
 pub struct Field {
+
+    /// For documentation and debugging purposes.
+    ///
+    /// This value does not appear in any messages.
     pub label: &'static str,
+
+    /// 2-Character SIP Field Code
     pub code: &'static str,
 }
 
@@ -125,8 +140,17 @@ impl Field {
 /// No attempt is made to specify which spec::Field's are used for
 /// each Message since use in the wild varies wildly.
 pub struct Message {
+
+    /// Two-Character SIP Message Code
     pub code: &'static str,
+
+    /// For documentation and debugging purposes.
+    ///
+    /// This value does not appear in any messages.
     pub label: &'static str,
+
+    /// Fixed fields used by this message, defined in the order they
+    /// appear in the compiled message.
     pub fixed_fields: &'static [&'static FixedField],
 }
 

@@ -8,7 +8,21 @@ use super::params::*;
 /// common SIP2 actions.
 ///
 /// This is not a complete set of friendly-ified requests.  Just a start.
-
+///
+/// ```no_run
+/// use sip2::{Client, ParamSet};
+/// let mut client = Client::new("127.0.0.1:6001").expect("Cannot Connect");
+///
+/// let mut params = ParamSet::new();
+/// params.set_sip_user("sip-server-login");
+/// params.set_sip_pass("sip-server-password");
+///
+/// // Login to the SIP server
+/// match client.login(&params).expect("Login Error").ok() {
+///     true => println!("Login OK"),
+///     false => eprintln!("Login Failed"),
+/// }
+/// ```
 pub struct Client {
     connection: Connection,
 }
@@ -20,6 +34,7 @@ impl Client {
         Ok(Client { connection: Connection::new(host)? })
     }
 
+    /// Shutdown the TCP connection with the SIP server.
     pub fn disconnect(&self) -> Result<(), Error> {
         self.connection.disconnect()
     }
@@ -243,19 +258,16 @@ impl SipResponse {
         }
     }
 
-    /// Shortcut for this.resp.msg().get_field_value(code)
-    pub fn value(&self, code: &str) -> Option<String> {
-        self.msg().get_field_value(code)
-    }
-}
-
-impl SipResponse {
     pub fn ok(&self) -> bool {
         self.ok
     }
     pub fn msg(&self) -> &Message {
         &self.msg
     }
-}
 
+    /// Shortcut for this.resp.msg().get_field_value(code)
+    pub fn value(&self, code: &str) -> Option<String> {
+        self.msg().get_field_value(code)
+    }
+}
 

@@ -3,7 +3,6 @@
 /// Collection of friendly-named SIP request parameters for common tasks.
 ///
 /// This is not a complete set of friendly-ified parameters.  Just a start.
-
 #[derive(Debug, Clone)]
 pub struct ParamSet {
     institution: Option<String>,

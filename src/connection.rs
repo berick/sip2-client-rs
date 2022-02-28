@@ -6,6 +6,7 @@ use super::{Message};
 use super::error::Error;
 use super::spec;
 
+// Read data from the socket in chunks this size.
 const READ_BUFSIZE: usize = 256;
 
 /// Manages a TCP connection to a SIP server and handles message sending
@@ -19,7 +20,7 @@ impl Connection {
     /// Creates a new SIP client and opens the TCP connection to the server
     ///
     /// * `sip_host` - SIP server host/ip and port
-    ///   ** e.g. "127.0.0.1:6001"
+    /// * E.g. "127.0.0.1:6001"
     ///
     /// ```
     /// use sip2::Connection;
@@ -117,7 +118,7 @@ impl Connection {
         }
     }
 
-    /// Shortcut for self.send() + self.recv().
+    /// Shortcut for:  self.send(msg); resp = self.recv();
     pub fn sendrecv(&mut self, msg: &Message) -> Result<Message, Error> {
         self.send(msg)?;
         self.recv()
