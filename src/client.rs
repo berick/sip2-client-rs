@@ -1,8 +1,8 @@
-use std::str;
-use super::error::Error;
 use super::connection::Connection;
-use super::{spec, Message, Field, FixedField, util};
+use super::error::Error;
 use super::params::*;
+use super::{spec, util, Field, FixedField, Message};
+use std::str;
 
 /// Wrapper for Connection which provides a simpler interface for some
 /// common SIP2 actions.
@@ -28,10 +28,11 @@ pub struct Client {
 }
 
 impl Client {
-
     /// Creates a new SIP client and opens the TCP connection to the server.
-    pub fn new(host: &str) -> Result<Self, Error>  {
-        Ok(Client { connection: Connection::new(host)? })
+    pub fn new(host: &str) -> Result<Self, Error> {
+        Ok(Client {
+            connection: Connection::new(host)?,
+        })
     }
 
     /// Shutdown the TCP connection with the SIP server.
@@ -43,15 +44,14 @@ impl Client {
     ///
     /// Sets ok=true if the OK fixed field is true.
     pub fn login(&mut self, params: &ParamSet) -> Result<SipResponse, Error> {
-
         let user = match params.sip_user() {
             Some(u) => u,
-            _ =>  return Err(Error::MissingParamsError)
+            _ => return Err(Error::MissingParamsError),
         };
 
         let pass = match params.sip_pass() {
             Some(u) => u,
-            _ =>  return Err(Error::MissingParamsError)
+            _ => return Err(Error::MissingParamsError),
         };
 
         let mut req = Message::new(
@@ -63,22 +63,19 @@ impl Client {
             vec![
                 Field::new(spec::F_LOGIN_UID.code, user),
                 Field::new(spec::F_LOGIN_PWD.code, pass),
-            ]
+            ],
         );
 
-        req.maybe_add_field(
-            spec::F_LOCATION_CODE.code, params.location().as_deref());
+        req.maybe_add_field(spec::F_LOCATION_CODE.code, params.location().as_deref());
 
         let resp = self.connection.sendrecv(&req)?;
 
         if resp.spec().code == spec::M_LOGIN_RESP.code
             && resp.fixed_fields().len() == 1
-            && resp.fixed_fields()[0].value() == "1" {
-
+            && resp.fixed_fields()[0].value() == "1"
+        {
             Ok(SipResponse::new(resp, true))
-
         } else {
-
             Ok(SipResponse::new(resp, false))
         }
     }
@@ -87,28 +84,21 @@ impl Client {
     ///
     /// Sets ok=true if the server reports that it's online.
     pub fn sc_status(&mut self) -> Result<SipResponse, Error> {
-
         let req = Message::new(
             &spec::M_SC_STATUS,
             vec![
                 FixedField::new(&spec::FF_STATUS_CODE, "0").unwrap(),
                 FixedField::new(&spec::FF_MAX_PRINT_WIDTH, "999").unwrap(),
-                FixedField::new(
-                    &spec::FF_PROTOCOL_VERSION, &spec::SIP_PROTOCOL_VERSION
-                ).unwrap(),
+                FixedField::new(&spec::FF_PROTOCOL_VERSION, &spec::SIP_PROTOCOL_VERSION).unwrap(),
             ],
             vec![],
         );
 
         let resp = self.connection.sendrecv(&req)?;
 
-        if resp.fixed_fields().len() > 0
-            && resp.fixed_fields()[0].value() == "Y" {
-
+        if resp.fixed_fields().len() > 0 && resp.fixed_fields()[0].value() == "Y" {
             Ok(SipResponse::new(resp, true))
-
         } else {
-
             Ok(SipResponse::new(resp, false))
         }
     }
@@ -117,7 +107,6 @@ impl Client {
     ///
     /// Sets ok=true if the "valid patron" (BL) field is "Y"
     pub fn patron_status(&mut self, params: &ParamSet) -> Result<SipResponse, Error> {
-
         let patron_id = match params.patron_id() {
             Some(p) => p,
             _ => return Err(Error::MissingParamsError),
@@ -151,7 +140,6 @@ impl Client {
     ///
     /// Sets ok=true if the "valid patron" (BL) field is "Y"
     pub fn patron_info(&mut self, params: &ParamSet) -> Result<SipResponse, Error> {
-
         let patron_id = match params.patron_id() {
             Some(p) => p,
             None => return Err(Error::MissingParamsError),
@@ -205,7 +193,6 @@ impl Client {
     /// Sets ok=true if a title (AJ) value is present.  Oddly, there's no
     /// specific "item does not exist" value in the Item Info Response.
     pub fn item_info(&mut self, params: &ParamSet) -> Result<SipResponse, Error> {
-
         let item_id = match params.item_id() {
             Some(id) => id,
             None => return Err(Error::MissingParamsError),
@@ -213,9 +200,7 @@ impl Client {
 
         let mut req = Message::new(
             &spec::M_ITEM_INFO,
-            vec![
-                FixedField::new(&spec::FF_DATE, &util::sip_date_now()).unwrap(),
-            ],
+            vec![FixedField::new(&spec::FF_DATE, &util::sip_date_now()).unwrap()],
             vec![Field::new(spec::F_ITEM_IDENT.code, &item_id)],
         );
 
@@ -237,7 +222,6 @@ impl Client {
 /// Wrapper for holding the SIP response message and a simplistic
 /// "OK" flag.
 pub struct SipResponse {
-
     /// The response message.
     msg: Message,
 
@@ -250,12 +234,8 @@ pub struct SipResponse {
 }
 
 impl SipResponse {
-
     pub fn new(msg: Message, ok: bool) -> Self {
-        SipResponse {
-            msg,
-            ok,
-        }
+        SipResponse { msg, ok }
     }
 
     pub fn ok(&self) -> bool {
@@ -270,4 +250,3 @@ impl SipResponse {
         self.msg().get_field_value(code)
     }
 }
-

@@ -1,8 +1,8 @@
-use std::fmt;
-use log::{warn, error};
 use super::error::Error;
 use super::spec;
 use super::util;
+use log::{error, warn};
+use std::fmt;
 
 /// Fixed field with spec and value.
 ///
@@ -10,11 +10,10 @@ use super::util;
 /// spec::FixedField is required
 pub struct FixedField {
     spec: &'static spec::FixedField,
-    value: String
+    value: String,
 }
 
 impl FixedField {
-
     pub fn new(spec: &'static spec::FixedField, value: &str) -> Result<Self, Error> {
         if value.len() == spec.length.into() {
             Ok(FixedField {
@@ -53,7 +52,6 @@ impl FixedField {
 /// To support passing field types that are not known at compile time,
 /// store the message code instead of a ref to a well-known spec::Field.
 pub struct Field {
-
     /// 2-character code
     // Note we could link to the static spec::Field here, like
     // FixedField, instead of storing a copy of the code/label, but that
@@ -61,11 +59,10 @@ pub struct Field {
     code: String,
 
     /// Field value
-    value: String
+    value: String,
 }
 
 impl Field {
-
     pub fn new(code: &str, value: &str) -> Self {
         Field {
             code: code.to_string(),
@@ -100,7 +97,6 @@ impl Field {
 
 /// SIP message complete with message code, fixed fields, and fields.
 pub struct Message {
-
     /// Link to the specification for this message type
     spec: &'static spec::Message,
 
@@ -112,10 +108,11 @@ pub struct Message {
 }
 
 impl Message {
-
-    pub fn new(spec: &'static spec::Message,
-        fixed_fields: Vec<FixedField>, fields: Vec<Field>) -> Self {
-
+    pub fn new(
+        spec: &'static spec::Message,
+        fixed_fields: Vec<FixedField>,
+        fields: Vec<Field>,
+    ) -> Self {
         let mut msg = Message {
             spec,
             fixed_fields,
@@ -235,7 +232,6 @@ impl Message {
     /// assert_eq!(msg.fields()[1].value(), "sip_password");
     /// ```
     pub fn from_sip(text: &str) -> Result<Message, Error> {
-
         let msg_spec = match spec::Message::from_code(&text[0..2]) {
             Some(m) => m,
             None => {
@@ -255,11 +251,13 @@ impl Message {
         let mut msg_text = &text[2..];
 
         for ff_spec in msg_spec.fixed_fields.iter() {
-
             if msg_text.len() < ff_spec.length {
                 // Fixed Fields must match known values.
 
-                warn!("Message has invalid fixed field: {} : {}", ff_spec.label, msg_text);
+                warn!(
+                    "Message has invalid fixed field: {} : {}",
+                    ff_spec.label, msg_text
+                );
                 return Err(Error::MessageFormatError);
             }
 
@@ -268,16 +266,20 @@ impl Message {
 
             // unwrap() is OK because we have confirmed the value has
             // the correct length above.
-            msg.fixed_fields.push(FixedField::new(ff_spec, value).unwrap());
+            msg.fixed_fields
+                .push(FixedField::new(ff_spec, value).unwrap());
         }
 
         // Not all messages have fixed fields and/or fields
-        if msg_text.len() == 0 { return Ok(msg); }
+        if msg_text.len() == 0 {
+            return Ok(msg);
+        }
 
         for part in msg_text.split("|") {
-
             // Discard any fields that don't have values.
-            if part.len() < 3 { continue; }
+            if part.len() < 3 {
+                continue;
+            }
 
             msg.fields.push(Field::new(&part[0..2], &part[2..]));
         }
@@ -289,7 +291,6 @@ impl Message {
 /// Message display support for logging / debugging.
 impl fmt::Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
         write!(f, "{} {}\n", self.spec.code, self.spec.label)?;
 
         for ff in self.fixed_fields.iter() {
@@ -300,11 +301,10 @@ impl fmt::Display for Message {
             if let Some(spec) = spec::Field::from_code(&field.code) {
                 write!(f, "{} {:.<35}{}\n", spec.code, spec.label, field.value)?;
             } else {
-                write!(f,  "{} {:.<35}{}\n", field.code, "unknown", field.value)?;
+                write!(f, "{} {:.<35}{}\n", field.code, "unknown", field.value)?;
             }
         }
 
         write!(f, "")
     }
 }
-

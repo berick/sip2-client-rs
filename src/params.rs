@@ -23,7 +23,6 @@ pub struct ParamSet {
 }
 
 impl ParamSet {
-
     pub fn new() -> Self {
         ParamSet {
             institution: None,
@@ -40,17 +39,39 @@ impl ParamSet {
         }
     }
 
-    pub fn institution(&self) -> &Option<String> { &self.institution }
-    pub fn terminal_pwd(&self) -> &Option<String> { &self.terminal_pwd }
-    pub fn sip_user(&self) -> &Option<String> { &self.sip_user }
-    pub fn sip_pass(&self) -> &Option<String> { &self.sip_pass }
-    pub fn location(&self) -> &Option<String> { &self.location }
-    pub fn patron_id(&self) -> &Option<String> { &self.patron_id }
-    pub fn patron_pwd(&self) -> &Option<String> { &self.patron_pwd }
-    pub fn item_id(&self) -> &Option<String> { &self.item_id }
-    pub fn start_item(&self) -> &Option<usize> { &self.start_item }
-    pub fn end_item(&self) -> &Option<usize> { &self.end_item }
-    pub fn summary(&self) -> &Option<usize> { &self.summary }
+    pub fn institution(&self) -> &Option<String> {
+        &self.institution
+    }
+    pub fn terminal_pwd(&self) -> &Option<String> {
+        &self.terminal_pwd
+    }
+    pub fn sip_user(&self) -> &Option<String> {
+        &self.sip_user
+    }
+    pub fn sip_pass(&self) -> &Option<String> {
+        &self.sip_pass
+    }
+    pub fn location(&self) -> &Option<String> {
+        &self.location
+    }
+    pub fn patron_id(&self) -> &Option<String> {
+        &self.patron_id
+    }
+    pub fn patron_pwd(&self) -> &Option<String> {
+        &self.patron_pwd
+    }
+    pub fn item_id(&self) -> &Option<String> {
+        &self.item_id
+    }
+    pub fn start_item(&self) -> &Option<usize> {
+        &self.start_item
+    }
+    pub fn end_item(&self) -> &Option<usize> {
+        &self.end_item
+    }
+    pub fn summary(&self) -> &Option<usize> {
+        &self.summary
+    }
 
     // ---
 
@@ -99,4 +120,3 @@ impl ParamSet {
         self
     }
 }
-

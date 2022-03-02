@@ -1,10 +1,10 @@
-use std::str;
-use std::io::prelude::*;
-use std::net::{Shutdown, TcpStream};
-use log::{trace, debug, error};
-use super::{Message};
 use super::error::Error;
 use super::spec;
+use super::Message;
+use log::{debug, error, trace};
+use std::io::prelude::*;
+use std::net::{Shutdown, TcpStream};
+use std::str;
 
 // Read data from the socket in chunks this size.
 const READ_BUFSIZE: usize = 256;
@@ -16,7 +16,6 @@ pub struct Connection {
 }
 
 impl Connection {
-
     /// Creates a new SIP client and opens the TCP connection to the server
     ///
     /// * `sip_host` - SIP server host/ip and port
@@ -26,7 +25,7 @@ impl Connection {
     /// use sip2::Connection;
     /// assert_eq!(Connection::new("JUNK0+..-*z$@").is_err(), true);
     /// ```
-    pub fn new(sip_host: &str) -> Result<Self, Error>  {
+    pub fn new(sip_host: &str) -> Result<Self, Error> {
         debug!("Connection::new() connecting to: {}", sip_host);
 
         match TcpStream::connect(sip_host) {
@@ -53,7 +52,6 @@ impl Connection {
 
     /// Send a SIP message
     pub fn send(&mut self, msg: &Message) -> Result<(), Error> {
-
         let msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
 
         debug!("OUTBOUND: {}", msg_sip);
@@ -71,13 +69,11 @@ impl Connection {
     ///
     /// Blocks until a response is received.
     pub fn recv(&mut self) -> Result<Message, Error> {
-
         trace!("Connection::recv() waiting for response...");
 
         let mut text = String::from("");
 
         loop {
-
             let mut buf: [u8; READ_BUFSIZE] = [0; READ_BUFSIZE];
 
             let num_bytes = match self.tcp_stream.read(&mut buf) {
@@ -88,7 +84,9 @@ impl Connection {
                 }
             };
 
-            if num_bytes == 0 { break; }
+            if num_bytes == 0 {
+                break;
+            }
 
             let chunk = match str::from_utf8(&buf) {
                 Ok(s) => s,
@@ -100,7 +98,9 @@ impl Connection {
 
             text.push_str(chunk);
 
-            if num_bytes < READ_BUFSIZE { break; }
+            if num_bytes < READ_BUFSIZE {
+                break;
+            }
         }
 
         debug!("INBOUND: {}", text);
@@ -124,4 +124,3 @@ impl Connection {
         self.recv()
     }
 }
-

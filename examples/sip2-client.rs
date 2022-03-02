@@ -1,6 +1,6 @@
-use std::env;
 use getopts;
 use sip2::*;
+use std::env;
 
 const HELP_TEXT: &str = r#"
 
@@ -23,7 +23,6 @@ fn print_err(err: &str) -> String {
 }
 
 fn main() {
-
     let args: Vec<String> = env::args().collect();
     let mut opts = getopts::Options::new();
 
@@ -37,12 +36,19 @@ fn main() {
     opts.optopt("i", "item-barcode", "Item Barcode", "ITEM-BARCODE");
     opts.optopt("l", "location-code", "Location Code", "LOCATION-CODE");
 
-    let options = opts.parse(&args[1..])
+    let options = opts
+        .parse(&args[1..])
         .expect("Error parsing command line options");
 
-    let host = options.opt_str("sip-host").expect(&print_err("--sip-host required"));
-    let user = options.opt_str("sip-user").expect(&print_err("--sip-user required"));
-    let pass = options.opt_str("sip-pass").expect(&print_err("--sip-pass required"));
+    let host = options
+        .opt_str("sip-host")
+        .expect(&print_err("--sip-host required"));
+    let user = options
+        .opt_str("sip-user")
+        .expect(&print_err("--sip-user required"));
+    let pass = options
+        .opt_str("sip-pass")
+        .expect(&print_err("--sip-pass required"));
 
     // Connect to the SIP server
     let mut client = Client::new(&host).expect("Cannot Connect");
@@ -72,7 +78,6 @@ fn main() {
     // --- PATRON STUFF ---
 
     if let Some(patron_id) = options.opt_str("patron-barcode") {
-
         params.set_patron_id(&patron_id);
         if let Some(pass) = options.opt_str("patron-pass") {
             params.set_patron_pwd(&pass);
@@ -87,7 +92,7 @@ fn main() {
                 if let Some(name) = resp.value("AE") {
                     println!("Patron name is '{}'", name);
                 }
-            },
+            }
             false => eprintln!("Patron Info reports not valid"),
         }
 
@@ -102,7 +107,7 @@ fn main() {
                 if let Some(name) = resp.value("AE") {
                     println!("Patron name is '{}'", name);
                 }
-            },
+            }
             false => eprintln!("Patron Info reports not valid"),
         }
     }
@@ -118,11 +123,12 @@ fn main() {
         match resp.ok() {
             true => {
                 println!("Item Info reports valid");
-                println!("Item title is '{}'",
-                    resp.value("AJ").expect("Item has no title"));
-            },
+                println!(
+                    "Item title is '{}'",
+                    resp.value("AJ").expect("Item has no title")
+                );
+            }
             false => eprintln!("Item Info reports not valid"),
         }
     }
 }
-

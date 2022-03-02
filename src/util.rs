@@ -1,9 +1,8 @@
 //! SIP utility functions
-use chrono::{DateTime, Local};
-use log::{error};
-use super::spec;
 use super::error;
-
+use super::spec;
+use chrono::{DateTime, Local};
+use log::error;
 
 /// Clean up a string for inclusion in a SIP message
 ///
@@ -45,4 +44,3 @@ pub fn sip_date(iso_date: &str) -> Result<String, error::Error> {
         }
     }
 }
-
