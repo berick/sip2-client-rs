@@ -16,5 +16,8 @@ mod error;
 mod message;
 mod params;
 
+#[cfg(feature = "json")]
+mod message_json;
+
 #[cfg(test)]
 mod tests;

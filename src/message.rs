@@ -15,7 +15,7 @@ pub struct FixedField {
 
 impl FixedField {
     pub fn new(spec: &'static spec::FixedField, value: &str) -> Result<Self, Error> {
-        if value.len() == spec.length.into() {
+        if value.len() == spec.length {
             Ok(FixedField {
                 spec: spec,
                 value: value.to_string(),

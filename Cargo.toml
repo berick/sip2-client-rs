@@ -15,6 +15,10 @@ categories = ["development-tools", "network-programming", "parser-implementation
 chrono = "0.4.19"
 log = "0.4.14"
 getopts = "0.2.21"
+serde_json = { version = "1", optional = true }
+
+[features]
+json = ["serde_json"]
 
 [[example]]
 name = "sip2-client"
