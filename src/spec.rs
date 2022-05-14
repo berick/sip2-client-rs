@@ -6,6 +6,7 @@ pub const LINE_TERMINATOR: &str = "\r";
 pub const SIP_DATE_FORMAT: &str = "%Y%m%d    %H%M%S";
 
 /// Fixed field definition with label and field length
+#[derive(PartialEq, Debug)]
 pub struct FixedField {
     /// For documentation and debugging purposes.
     ///
@@ -26,6 +27,7 @@ impl fmt::Display for FixedField {
 }
 
 /// Field definition with label and 2-character code.
+#[derive(PartialEq, Debug)]
 pub struct Field {
     /// For documentation and debugging purposes.
     ///
@@ -136,6 +138,7 @@ impl Field {
 ///
 /// No attempt is made to specify which spec::Field's are used for
 /// each Message since use in the wild varies wildly.
+#[derive(PartialEq, Debug)]
 pub struct Message {
     /// Two-Character SIP Message Code
     pub code: &'static str,
