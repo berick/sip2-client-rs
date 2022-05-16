@@ -8,6 +8,7 @@ use std::fmt;
 ///
 /// Since fixed fields have specific length requirements, a well-known
 /// spec::FixedField is required
+#[derive(PartialEq, Debug)]
 pub struct FixedField {
     spec: &'static spec::FixedField,
     value: String,
@@ -51,6 +52,7 @@ impl FixedField {
 ///
 /// To support passing field types that are not known at compile time,
 /// store the message code instead of a ref to a well-known spec::Field.
+#[derive(PartialEq, Debug)]
 pub struct Field {
     /// 2-character code
     // Note we could link to the static spec::Field here, like
@@ -96,6 +98,7 @@ impl Field {
 }
 
 /// SIP message complete with message code, fixed fields, and fields.
+#[derive(PartialEq, Debug)]
 pub struct Message {
     /// Link to the specification for this message type
     spec: &'static spec::Message,
