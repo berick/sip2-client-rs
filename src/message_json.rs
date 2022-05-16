@@ -14,12 +14,10 @@ pub enum SipJsonError {
     MessageFormatError(String),
 }
 
-use SipJsonError::*;
-
 impl fmt::Display for SipJsonError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            MessageFormatError(s) =>
+            SipJsonError::MessageFormatError(s) =>
                 write!(f, "SIP message could not be translated to/from JSON: {}", s),
         }
     }
@@ -74,12 +72,38 @@ impl Message {
         }))
     }
 
+    /// Translate a SIP Message into a JSON string.
+    ///
+    /// ```
+    /// use sip2::{Message, Field, FixedField};
+    /// use sip2::spec;
+    ///
+    /// let msg = Message::new(
+    ///     &spec::M_LOGIN,
+    ///     vec![
+    ///         FixedField::new(&spec::FF_UID_ALGO, "0").unwrap(),
+    ///         FixedField::new(&spec::FF_PWD_ALGO, "0").unwrap(),
+    ///     ],
+    ///     vec![
+    ///         Field::new(spec::F_LOGIN_UID.code, "sip_username"),
+    ///         Field::new(spec::F_LOGIN_PWD.code, "sip_password"),
+    ///     ]
+    /// );
+    ///
+    /// let json_str = msg.to_json().unwrap();
+    ///
+    /// // Comparing JSON strings is nontrivial with hashes.
+    /// // Assume completion means success.  See to_json_value() for
+    /// // more rigorous testing.
+    /// assert_eq!(true, true);
+    /// ```
     pub fn to_json(&self) -> Result<String, SipJsonError> {
         match self.to_json_value() {
             Ok(jv) => {
                 match json::to_string(&jv) {
                     Ok(s) => Ok(s),
-                    Err(e) => Err(SipJsonError::MessageFormatError(format!("{}", e))),
+                    Err(e) =>
+                        Err(SipJsonError::MessageFormatError(format!("{}", e))),
                 }
             },
             Err(e) => Err(e)
@@ -212,7 +236,6 @@ impl Message {
     ///
     /// assert_eq!(expected, msg);
     /// ```
-
     pub fn from_json(msg_json: &str) -> Result<Message, SipJsonError> {
 
         let json_value: json::Value = match json::from_str(msg_json) {
