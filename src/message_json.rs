@@ -1,4 +1,3 @@
-use super::error::Error;
 use std::error;
 use std::fmt;
 use super::spec;
@@ -11,12 +10,27 @@ use serde_json as json;
 /// Errors related specifically to SIP <=> JSON routines
 #[derive(Debug)]
 pub enum SipJsonError {
+
+    /// Data does not contain the correct content, e.g. sip message code.
     MessageFormatError(String),
+
+    /// Data cannot be successfully minipulated as JSON
+    JsonError(json::Error),
+}
+
+impl error::Error for SipJsonError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match *self {
+            SipJsonError::JsonError(ref err) => Some(err),
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for SipJsonError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            SipJsonError::JsonError(ref err) => err.fmt(f),
             SipJsonError::MessageFormatError(s) =>
                 write!(f, "SIP message could not be translated to/from JSON: {}", s),
         }
@@ -103,7 +117,7 @@ impl Message {
                 match json::to_string(&jv) {
                     Ok(s) => Ok(s),
                     Err(e) =>
-                        Err(SipJsonError::MessageFormatError(format!("{}", e))),
+                        Err(SipJsonError::JsonError(e))
                 }
             },
             Err(e) => Err(e)
@@ -241,7 +255,7 @@ impl Message {
         let json_value: json::Value = match json::from_str(msg_json) {
             Ok(v) => v,
             Err(e) => {
-                return Err(SipJsonError::MessageFormatError(format!("{}", e)));
+                return Err(SipJsonError::JsonError(e)) ;
             }
         };
 
