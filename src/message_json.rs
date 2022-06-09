@@ -197,10 +197,19 @@ impl Message {
                 if let Some(json_hash) = json_field.as_object() {
                     if let Some(code) = json_hash.keys().next() {
                         if code.len() == 2 {
-                            if let Some(value) = json_hash[code].as_str() {
-                                fields.push(Field::new(code, &value));
-                            } else {
-                                err = true;
+                            let val_json = &json_hash[code];
+
+                            // NULL values are OK, just ignore them.
+                            if !val_json.is_null() {
+                                let value: String;
+
+                                if val_json.is_string() {
+                                    fields.push(Field::new(code, val_json.as_str().unwrap()));
+                                } else if val_json.is_number() {
+                                    fields.push(Field::new(code, &val_json.as_i64().unwrap().to_string()));
+                                } else {
+                                    err = true;
+                                }
                             }
                         }
                     } else {

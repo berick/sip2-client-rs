@@ -107,8 +107,6 @@ impl Connection {
             }
         }
 
-        debug!("INBOUND: {}", text);
-
         if text.len() == 0 {
             Err(Error::NoResponseError)
         } else {
@@ -116,7 +114,10 @@ impl Connection {
             let mut parts = text.split(spec::LINE_TERMINATOR);
 
             match parts.next() {
-                Some(s) => Message::from_sip(s),
+                Some(s) => {
+                    debug!("INBOUND: {}", s);
+                    Message::from_sip(s)
+                }
                 None => Err(Error::MessageFormatError),
             }
         }
