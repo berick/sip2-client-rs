@@ -37,6 +37,10 @@ impl Connection {
         }
     }
 
+    pub fn new_from_stream(tcp_stream: TcpStream) -> Self {
+        Connection { tcp_stream: tcp_stream }
+    }
+
     /// Shutdown the TCP connection with the SIP server.
     pub fn disconnect(&self) -> Result<(), Error> {
         debug!("Connection::disconnect()");
