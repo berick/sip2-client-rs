@@ -1,6 +1,6 @@
 [package]
 name = "sip2"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Bill Erickson <berickxx@gmail.com>"]
 edition = "2018"
 license-file = "LICENSE"
