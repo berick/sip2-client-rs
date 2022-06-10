@@ -31,7 +31,7 @@ impl fmt::Display for Error {
             NetworkError => write!(f, "network error"),
             MessageFormatError => write!(f, "sip message format error"),
             UnknownMessageError => write!(f, "unknown sip message type"),
-            NoResponseError => write!(f, "no response was received"),
+            NoResponseError => write!(f, "no message was received"),
             MissingParamsError => write!(f, "missing needed parameter values"),
         }
     }

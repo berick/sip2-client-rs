@@ -186,6 +186,8 @@ impl Message {
             m if m == M_HOLD_RESP.code => Some(&M_HOLD_RESP),
             m if m == M_FEE_PAID.code => Some(&M_FEE_PAID),
             m if m == M_FEE_PAID_RESP.code => Some(&M_FEE_PAID_RESP),
+            m if m == M_END_SESSION.code => Some(&M_END_SESSION),
+            m if m == M_END_SESSION_RESP.code => Some(&M_END_SESSION_RESP),
             _ => None,
         }
     }
@@ -894,6 +896,25 @@ pub const M_FEE_PAID_RESP: Message = Message {
     code: "38",
     label: "Fee Paid Response",
     fixed_fields: &[&FF_PAYMENT_ACCEPTED, &FF_DATE],
+};
+
+// Custom "end session" messages for SIP2Mediator.
+// This differs from "End Patron Session" (35) message in that it's not
+// about a patron but about a SIP client session, which can involve
+// many patrons (or none).
+
+/// SIP2Mediator XS (End Session) Message
+pub const M_END_SESSION: Message = Message {
+    code: "XS",
+    label: "End Session",
+    fixed_fields: &[],
+};
+
+/// SIP2Mediator XT (End Session Response) Message
+pub const M_END_SESSION_RESP: Message = Message {
+    code: "XT",
+    label: "End Session Response",
+    fixed_fields: &[],
 };
 
 // NOTE: when adding new message types, be sure to also add the new

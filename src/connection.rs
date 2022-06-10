@@ -1,7 +1,7 @@
 use super::error::Error;
 use super::spec;
 use super::Message;
-use log::{debug, error, trace};
+use log::{debug, error, info, trace};
 use std::io::prelude::*;
 use std::net::{Shutdown, TcpStream};
 use std::str;
@@ -38,7 +38,9 @@ impl Connection {
     }
 
     pub fn new_from_stream(tcp_stream: TcpStream) -> Self {
-        Connection { tcp_stream: tcp_stream }
+        Connection {
+            tcp_stream: tcp_stream,
+        }
     }
 
     /// Shutdown the TCP connection with the SIP server.
@@ -58,7 +60,7 @@ impl Connection {
     pub fn send(&mut self, msg: &Message) -> Result<(), Error> {
         let msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
 
-        debug!("OUTBOUND: {}", msg_sip);
+        info!("OUTBOUND: {}", msg_sip);
 
         match self.tcp_stream.write(&msg_sip.as_bytes()) {
             Ok(_) => Ok(()),
@@ -115,7 +117,7 @@ impl Connection {
 
             match parts.next() {
                 Some(s) => {
-                    debug!("INBOUND: {}", s);
+                    info!("INBOUND: {}", s);
                     Message::from_sip(s)
                 }
                 None => Err(Error::MessageFormatError),

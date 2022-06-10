@@ -201,12 +201,13 @@ impl Message {
 
                             // NULL values are OK, just ignore them.
                             if !val_json.is_null() {
-                                let value: String;
-
                                 if val_json.is_string() {
                                     fields.push(Field::new(code, val_json.as_str().unwrap()));
                                 } else if val_json.is_number() {
-                                    fields.push(Field::new(code, &val_json.as_i64().unwrap().to_string()));
+                                    fields.push(Field::new(
+                                        code,
+                                        &val_json.as_i64().unwrap().to_string(),
+                                    ));
                                 } else {
                                     err = true;
                                 }
