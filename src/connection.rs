@@ -13,6 +13,9 @@ const READ_BUFSIZE: usize = 256;
 /// and receiving.
 pub struct Connection {
     tcp_stream: TcpStream,
+
+    // If set, non-ASCII chars are removed from outbound messages.
+    ascii: bool,
 }
 
 impl Connection {
@@ -29,7 +32,10 @@ impl Connection {
         debug!("Connection::new() connecting to: {}", sip_host);
 
         match TcpStream::connect(sip_host) {
-            Ok(stream) => Ok(Connection { tcp_stream: stream }),
+            Ok(stream) => Ok(Connection {
+                tcp_stream: stream,
+                ascii: false,
+            }),
             Err(s) => {
                 error!("Connection::new() failed: {}", s);
                 return Err(Error::NetworkError);
@@ -39,8 +45,13 @@ impl Connection {
 
     pub fn new_from_stream(tcp_stream: TcpStream) -> Self {
         Connection {
+            ascii: false,
             tcp_stream: tcp_stream,
         }
+    }
+
+    pub fn set_ascii(&mut self, ascii: bool) {
+        self.ascii = ascii;
     }
 
     /// Shutdown the TCP connection with the SIP server.
@@ -58,7 +69,12 @@ impl Connection {
 
     /// Send a SIP message
     pub fn send(&mut self, msg: &Message) -> Result<(), Error> {
-        let msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
+
+        let mut msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
+
+        if self.ascii {
+            msg_sip = msg_sip.replace(|c: char| !c.is_ascii(), "");
+        }
 
         info!("OUTBOUND: {}", msg_sip);
 
