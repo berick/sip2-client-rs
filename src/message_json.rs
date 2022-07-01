@@ -2,7 +2,7 @@ use super::spec;
 use super::Field;
 use super::FixedField;
 use super::Message;
-use serde_json as json;
+use json;
 use std::collections::HashMap;
 use std::error;
 use std::fmt;
@@ -43,7 +43,7 @@ impl Message {
     /// ```
     /// use sip2::{Message, Field, FixedField};
     /// use sip2::spec;
-    /// use serde_json as json;
+    /// use json;
     ///
     /// let msg = Message::new(
     ///     &spec::M_LOGIN,
@@ -58,14 +58,14 @@ impl Message {
     /// );
     ///
     /// let json_val = msg.to_json_value().unwrap();
-    /// let expected = json::json!({
+    /// let expected = json::object!{
     ///   "code":"93",
     ///   "fixed_fields":["0","0"],
-    ///   "fields":[{"CN":"sip_username"},{"CO":"sip_password"}]});
+    ///   "fields":[{"CN":"sip_username"},{"CO":"sip_password"}]};
     ///
     /// assert_eq!(expected, json_val);
     /// ```
-    pub fn to_json_value(&self) -> Result<serde_json::Value, SipJsonError> {
+    pub fn to_json_value(&self) -> Result<json::JsonValue, SipJsonError> {
         let ff: Vec<String> = self
             .fixed_fields()
             .iter()
@@ -80,11 +80,11 @@ impl Message {
             fields.push(map);
         }
 
-        Ok(json::json!({
+        Ok(json::object!{
             "code": self.spec().code,
             "fixed_fields": ff,
             "fields": fields
-        }))
+        })
     }
 
     /// Translate a SIP Message into a JSON string.
@@ -114,10 +114,7 @@ impl Message {
     /// ```
     pub fn to_json(&self) -> Result<String, SipJsonError> {
         match self.to_json_value() {
-            Ok(jv) => match json::to_string(&jv) {
-                Ok(s) => Ok(s),
-                Err(e) => Err(SipJsonError::JsonError(e)),
-            },
+            Ok(jv) => Ok(jv.dump()),
             Err(e) => Err(e),
         }
     }
@@ -127,7 +124,7 @@ impl Message {
     /// ```
     /// use sip2::{Message, Field, FixedField};
     /// use sip2::spec;
-    /// use serde_json as json;
+    /// use json;
     ///
     /// let expected = Message::new(
     ///     &spec::M_LOGIN,
@@ -141,24 +138,27 @@ impl Message {
     ///     ]
     /// );
     ///
-    /// let json_val = json::json!({
+    /// let json_val = json::object!{
     ///   "code":"93",
     ///   "fixed_fields":["0","0"],
-    ///   "fields":[{"CN":"sip_username"},{"CO":"sip_password"}]});
+    ///   "fields":[{"CN":"sip_username"},{"CO":"sip_password"}]};
     ///
     /// let msg = Message::from_json_value(&json_val).unwrap();
     ///
     /// assert_eq!(expected, msg);
     /// ```
-    pub fn from_json_value(json_value: &json::Value) -> Result<Message, SipJsonError> {
-        let msg_code = match &json_value["code"] {
-            json::Value::String(c) => c,
-            _ => {
-                return Err(SipJsonError::MessageFormatError(format!(
-                    "Missing 'code' value"
-                )));
-            }
-        };
+    pub fn from_json_value(json_value: &json::JsonValue) -> Result<Message, SipJsonError> {
+
+        let msg_code;
+        if json_value["code"].is_string() {
+            msg_code = json_value["code"].as_str().unwrap().to_string();
+        } else if json_value["code"].is_number() {
+            msg_code = format!("{}", json_value["code"].as_i64().unwrap());
+        } else {
+            return Err(SipJsonError::MessageFormatError(format!(
+                "Missing 'code' value"
+            )));
+        }
 
         let msg_spec = match spec::Message::from_code(&msg_code) {
             Some(s) => s,
@@ -172,7 +172,7 @@ impl Message {
 
         let mut fixed_fields: Vec<FixedField> = Vec::new();
 
-        if let json::Value::Array(json_arr) = &json_value["fixed_fields"] {
+        if let json::JsonValue::Array(json_arr) = &json_value["fixed_fields"] {
             let mut idx = 0;
 
             for ff_spec in msg_spec.fixed_fields.iter() {
@@ -188,39 +188,29 @@ impl Message {
             }
         }
 
-        // {"AO": "institution name"}
+        // [{"AO": "institution name"}, {"AB": "stuff"}]
         let mut fields: Vec<Field> = Vec::new();
 
         let mut err = false;
-        if let json::Value::Array(json_arr) = &json_value["fields"] {
-            for json_field in json_arr.iter() {
-                if let Some(json_hash) = json_field.as_object() {
-                    if let Some(code) = json_hash.keys().next() {
-                        if code.len() == 2 {
-                            let val_json = &json_hash[code];
 
-                            // NULL values are OK, just ignore them.
-                            if !val_json.is_null() {
-                                if val_json.is_string() {
-                                    fields.push(Field::new(code, val_json.as_str().unwrap()));
-                                } else if val_json.is_number() {
-                                    fields.push(Field::new(
-                                        code,
-                                        &val_json.as_i64().unwrap().to_string(),
-                                    ));
-                                } else {
-                                    err = true;
-                                }
-                            }
-                        }
-                    } else {
-                        err = true;
-                    }
+        for field in json_value["fields"].members() {
+            for (code, value) in field.entries() {
+                if value.is_null() {
+                    continue;
+                } else if value.is_string() {
+                    fields.push(Field::new(code, value.as_str().unwrap()));
+                } else if value.is_number() {
+                    fields.push(
+                        // TODO create an IntoSipValue trait
+                        Field::new(code, &format!("{}", value.as_i64().unwrap()))
+                    );
                 } else {
                     err = true;
                 }
+                // Each field has a single key/value pair.
+                break;
             }
-        } // "fields" not required for all messages
+        }
 
         if err {
             return Err(SipJsonError::MessageFormatError(format!(
@@ -236,7 +226,7 @@ impl Message {
     /// ```
     /// use sip2::{Message, Field, FixedField};
     /// use sip2::spec;
-    /// use serde_json as json;
+    /// use json;
     ///
     /// let expected = Message::new(
     ///     &spec::M_LOGIN,
@@ -263,7 +253,7 @@ impl Message {
     /// assert_eq!(expected, msg);
     /// ```
     pub fn from_json(msg_json: &str) -> Result<Message, SipJsonError> {
-        let json_value: json::Value = match json::from_str(msg_json) {
+        let json_value: json::JsonValue = match json::parse(msg_json) {
             Ok(v) => v,
             Err(e) => {
                 return Err(SipJsonError::JsonError(e));

@@ -1,6 +1,6 @@
 [package]
 name = "sip2"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Bill Erickson <berickxx@gmail.com>"]
 edition = "2018"
 license-file = "LICENSE"
@@ -13,12 +13,9 @@ categories = ["development-tools", "network-programming", "parser-implementation
 
 [dependencies]
 chrono = "0.4.19"
-log = "0.4.14"
+log = "0.4.17"
 getopts = "0.2.21"
-serde_json = { version = "1", optional = true }
-
-[features]
-json = ["serde_json"]
+json = { version = "0.12.4", optional = true }
 
 [[example]]
 name = "sip2-client"
