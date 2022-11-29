@@ -379,6 +379,10 @@ pub const FF_HOLD_AVAILABLE: FF = FF {
     length: 1,
     label: "hold available",
 };
+pub const FF_CARD_RETAINED: FF = FF {
+    length: 1,
+    label: "card retained",
+};
 
 // -------------------------------------------------------------------------
 // Fields
@@ -896,6 +900,13 @@ pub const M_FEE_PAID_RESP: Message = Message {
     code: "38",
     label: "Fee Paid Response",
     fixed_fields: &[&FF_PAYMENT_ACCEPTED, &FF_DATE],
+};
+
+/// Message 01
+pub const M_BLOCK_PATRON: Message = Message {
+    code: "01",
+    label: "Block Patron",
+    fixed_fields: &[&FF_CARD_RETAINED, &FF_DATE],
 };
 
 // Custom "end session" messages for SIP2Mediator.
