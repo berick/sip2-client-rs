@@ -168,10 +168,6 @@ impl Message {
 
         for field in json_value["fields"].members() {
             for (code, value) in field.entries() {
-                if value.is_null() {
-                    // Skip empty fields.
-                    continue;
-                }
                 msg.add_field(code, &format!("{}", value));
             }
         }

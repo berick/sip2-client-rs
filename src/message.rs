@@ -279,11 +279,6 @@ impl Message {
         }
 
         for part in msg_text.split("|") {
-            // Discard any fields that don't have values.
-            if part.len() < 3 {
-                continue;
-            }
-
             msg.fields.push(Field::new(&part[0..2], &part[2..]));
         }
 
