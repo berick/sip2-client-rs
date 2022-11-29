@@ -279,7 +279,8 @@ impl Message {
         }
 
         for part in msg_text.split("|") {
-            msg.fields.push(Field::new(&part[0..2], &part[2..]));
+            let val = match part.len() > 2 { true => &part[2..], _ => "" };
+            msg.fields.push(Field::new(&part[0..2], val));
         }
 
         Ok(msg)
