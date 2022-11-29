@@ -1,6 +1,3 @@
-use super::spec;
-use super::Field;
-use super::FixedField;
 use super::Message;
 use json;
 use std::collections::HashMap;
@@ -80,7 +77,7 @@ impl Message {
             fields.push(map);
         }
 
-        Ok(json::object!{
+        Ok(json::object! {
             "code": self.spec().code,
             "fixed_fields": ff,
             "fields": fields
@@ -148,77 +145,38 @@ impl Message {
     /// assert_eq!(expected, msg);
     /// ```
     pub fn from_json_value(json_value: &json::JsonValue) -> Result<Message, SipJsonError> {
-
-        let msg_code;
-        if json_value["code"].is_string() {
-            msg_code = json_value["code"].as_str().unwrap().to_string();
-        } else if json_value["code"].is_number() {
-            msg_code = format!("{}", json_value["code"].as_i64().unwrap());
-        } else {
-            return Err(SipJsonError::MessageFormatError(format!(
-                "Missing 'code' value"
-            )));
+        // Start with a message that's just the code plus fixed fields
+        // as a SIP string.
+        let mut strbuf = format!("{}", json_value["code"]);
+        for value in json_value["fixed_fields"].members() {
+            strbuf += &format!("{}", value);
         }
 
-        let msg_spec = match spec::Message::from_code(&msg_code) {
-            Some(s) => s,
-            _ => {
+        // Since we're creating this partial SIP string from raw
+        // JSON values, clean it up before parsing as SIP.
+        strbuf = super::util::sip_string(&strbuf);
+
+        let mut msg = match Message::from_sip(&strbuf) {
+            Ok(m) => m,
+            Err(e) => {
                 return Err(SipJsonError::MessageFormatError(format!(
-                    "Invalid SIP message code: {}",
-                    msg_code
-                )));
+                    "Message is not correctly formatted: {e} {}",
+                    json_value.dump()
+                )))
             }
         };
-
-        let mut fixed_fields: Vec<FixedField> = Vec::new();
-
-        if let json::JsonValue::Array(json_arr) = &json_value["fixed_fields"] {
-            let mut idx = 0;
-
-            for ff_spec in msg_spec.fixed_fields.iter() {
-                if let Some(json_val) = json_arr.get(idx) {
-                    if let Some(val) = json_val.as_str() {
-                        if let Ok(ff) = FixedField::new(ff_spec, &val) {
-                            fixed_fields.push(ff);
-                        }
-                    }
-                }
-
-                idx += 1;
-            }
-        }
-
-        // [{"AO": "institution name"}, {"AB": "stuff"}]
-        let mut fields: Vec<Field> = Vec::new();
-
-        let mut err = false;
 
         for field in json_value["fields"].members() {
             for (code, value) in field.entries() {
                 if value.is_null() {
+                    // Skip empty fields.
                     continue;
-                } else if value.is_string() {
-                    fields.push(Field::new(code, value.as_str().unwrap()));
-                } else if value.is_number() {
-                    fields.push(
-                        // TODO create an IntoSipValue trait
-                        Field::new(code, &format!("{}", value.as_i64().unwrap()))
-                    );
-                } else {
-                    err = true;
                 }
-                // Each field has a single key/value pair.
-                break;
+                msg.add_field(code, &format!("{}", value));
             }
         }
 
-        if err {
-            return Err(SipJsonError::MessageFormatError(format!(
-                "'fields' array contains invalid fields"
-            )));
-        }
-
-        Ok(Message::new(msg_spec, fixed_fields, fields))
+        Ok(msg)
     }
 
     /// Translate a JSON string into a SIP Message.

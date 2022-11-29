@@ -69,7 +69,6 @@ impl Connection {
 
     /// Send a SIP message
     pub fn send(&mut self, msg: &Message) -> Result<(), Error> {
-
         let mut msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
 
         if self.ascii {
