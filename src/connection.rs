@@ -73,7 +73,9 @@ impl Connection {
         let mut msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
 
         if self.ascii {
-            msg_sip = deunicode(&msg_sip);
+            // https://crates.io/crates/deunicode
+            // "Some transliterations do produce \n characters."
+            msg_sip = deunicode(&msg_sip).replace("\n", "");
         }
 
         info!("OUTBOUND: {}", msg_sip);
