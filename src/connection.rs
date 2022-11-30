@@ -5,6 +5,7 @@ use log::{debug, error, info, trace};
 use std::io::prelude::*;
 use std::net::{Shutdown, TcpStream};
 use std::str;
+use deunicode::deunicode;
 
 // Read data from the socket in chunks this size.
 const READ_BUFSIZE: usize = 256;
@@ -72,7 +73,7 @@ impl Connection {
         let mut msg_sip = msg.to_sip() + spec::LINE_TERMINATOR;
 
         if self.ascii {
-            msg_sip = msg_sip.replace(|c: char| !c.is_ascii(), "");
+            msg_sip = deunicode(&msg_sip);
         }
 
         info!("OUTBOUND: {}", msg_sip);
