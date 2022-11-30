@@ -186,9 +186,12 @@ impl Message {
             m if m == M_HOLD_RESP.code => Some(&M_HOLD_RESP),
             m if m == M_FEE_PAID.code => Some(&M_FEE_PAID),
             m if m == M_FEE_PAID_RESP.code => Some(&M_FEE_PAID_RESP),
+            m if m == M_END_PATRON_SESSION.code => Some(&M_END_PATRON_SESSION),
+            m if m == M_END_PATRON_SESSION_RESP.code => Some(&M_END_PATRON_SESSION_RESP),
             m if m == M_END_SESSION.code => Some(&M_END_SESSION),
             m if m == M_END_SESSION_RESP.code => Some(&M_END_SESSION_RESP),
             m if m == M_BLOCK_PATRON.code => Some(&M_BLOCK_PATRON),
+            m if m == M_REQUEST_ACS_RESEND.code => Some(&M_REQUEST_ACS_RESEND),
             _ => None,
         }
     }
@@ -383,6 +386,10 @@ pub const FF_HOLD_AVAILABLE: FF = FF {
 pub const FF_CARD_RETAINED: FF = FF {
     length: 1,
     label: "card retained",
+};
+pub const FF_END_PATRON_SESSION: FF = FF {
+    length: 1,
+    label: "end session",
 };
 
 // -------------------------------------------------------------------------
@@ -889,6 +896,20 @@ pub const M_HOLD_RESP: Message = Message {
     fixed_fields: &[&FF_OK, &FF_HOLD_AVAILABLE, &FF_DATE],
 };
 
+/// Message 35
+pub const M_END_PATRON_SESSION: Message = Message {
+    code: "35",
+    label: "End Patron Session",
+    fixed_fields: &[&FF_DATE],
+};
+
+/// Message 36
+pub const M_END_PATRON_SESSION_RESP: Message = Message {
+    code: "36",
+    label: "End Session Response",
+    fixed_fields: &[&FF_END_PATRON_SESSION, &FF_DATE],
+};
+
 /// Message 37
 pub const M_FEE_PAID: Message = Message {
     code: "37",
@@ -901,6 +922,13 @@ pub const M_FEE_PAID_RESP: Message = Message {
     code: "38",
     label: "Fee Paid Response",
     fixed_fields: &[&FF_PAYMENT_ACCEPTED, &FF_DATE],
+};
+
+/// Message 97
+pub const M_REQUEST_ACS_RESEND: Message = Message {
+    code: "97",
+    label: "Request ACS Resend",
+    fixed_fields: &[],
 };
 
 /// Message 01
@@ -918,14 +946,14 @@ pub const M_BLOCK_PATRON: Message = Message {
 /// SIP2Mediator XS (End Session) Message
 pub const M_END_SESSION: Message = Message {
     code: "XS",
-    label: "End Session",
+    label: "End SIP Session",
     fixed_fields: &[],
 };
 
 /// SIP2Mediator XT (End Session Response) Message
 pub const M_END_SESSION_RESP: Message = Message {
     code: "XT",
-    label: "End Session Response",
+    label: "End SIP Session Response",
     fixed_fields: &[],
 };
 

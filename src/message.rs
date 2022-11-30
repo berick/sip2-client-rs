@@ -235,6 +235,11 @@ impl Message {
     /// assert_eq!(msg.fields()[1].value(), "sip_password");
     /// ```
     pub fn from_sip(text: &str) -> Result<Message, Error> {
+        if text.len() < 2 {
+            log::warn!("SIP message is incomplete: {text}");
+            return Err(Error::MessageFormatError);
+        }
+
         let msg_spec = match spec::Message::from_code(&text[0..2]) {
             Some(m) => m,
             None => {
@@ -279,8 +284,13 @@ impl Message {
         }
 
         for part in msg_text.split("|") {
-            let val = match part.len() > 2 { true => &part[2..], _ => "" };
-            msg.fields.push(Field::new(&part[0..2], val));
+            if part.len() > 1 {
+                let val = match part.len() > 2 {
+                    true => &part[2..],
+                    _ => "",
+                };
+                msg.fields.push(Field::new(&part[0..2], val));
+            }
         }
 
         Ok(msg)

@@ -168,7 +168,18 @@ impl Message {
 
         for field in json_value["fields"].members() {
             for (code, value) in field.entries() {
-                msg.add_field(code, &format!("{}", value));
+                if value.is_object() || value.is_array() {
+                    return Err(SipJsonError::MessageFormatError(format!(
+                        "Message is not correctly formatted: {}",
+                        json_value.dump()
+                    )));
+                }
+
+                if value.is_null() {
+                    msg.add_field(code, "");
+                } else {
+                    msg.add_field(code, &format!("{}", value));
+                }
             }
         }
 
