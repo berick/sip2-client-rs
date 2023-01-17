@@ -1,3 +1,4 @@
+use std::time::Duration;
 use super::error::Error;
 use super::spec;
 use super::Message;
@@ -93,6 +94,26 @@ impl Connection {
     ///
     /// Blocks until a response is received.
     pub fn recv(&mut self) -> Result<Message, Error> {
+        match self.recv_internal(None) {
+            Ok(op) => match op {
+                Some(m) => Ok(m),
+                None => Err(Error::NetworkError),
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn recv_with_timeout(&mut self, timeout: u64) -> Result<Option<Message>, Error> {
+        self.recv_internal(Some(Duration::from_secs(timeout)))
+    }
+
+    fn recv_internal(&mut self, timeout: Option<Duration>) -> Result<Option<Message>, Error> {
+
+        if let Err(e) = self.tcp_stream.set_read_timeout(timeout) {
+            log::error!("Invalid timeout: {timeout:?} {e}");
+            return Err(Error::NetworkError);
+        }
+
         trace!("Connection::recv() waiting for response...");
 
         let mut text = String::from("");
@@ -128,18 +149,26 @@ impl Connection {
         }
 
         if text.len() == 0 {
-            Err(Error::NoResponseError)
-        } else {
-            // Discard the line terminator and any junk after it.
-            let mut parts = text.split(spec::LINE_TERMINATOR);
-
-            match parts.next() {
-                Some(s) => {
-                    info!("INBOUND: {}", s);
-                    Message::from_sip(s)
-                }
-                None => Err(Error::MessageFormatError),
+            if timeout.is_some() {
+                // Receiving none on timeout is OK.
+                return Ok(None);
+            } else {
+                // Receiving none with no timeout is an error.
+                log::warn!("Reading TCP stream returned 0 bytes");
+                return Err(Error::NoResponseError);
             }
+        }
+
+        // Discard the line terminator and any junk after it.
+        let mut parts = text.split(spec::LINE_TERMINATOR);
+
+        match parts.next() {
+            Some(s) => {
+                log::info!("INBOUND: {}", s);
+                let msg = Message::from_sip(s)?;
+                return Ok(Some(msg));
+            }
+            None => Err(Error::MessageFormatError),
         }
     }
 
