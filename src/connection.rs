@@ -109,12 +109,12 @@ impl Connection {
 
     fn recv_internal(&mut self, timeout: Option<Duration>) -> Result<Option<Message>, Error> {
 
+        log::trace!("recv_internal() with timeout {:?}", timeout);
+
         if let Err(e) = self.tcp_stream.set_read_timeout(timeout) {
             log::error!("Invalid timeout: {timeout:?} {e}");
             return Err(Error::NetworkError);
         }
-
-        trace!("Connection::recv() waiting for response...");
 
         let mut text = String::from("");
 
@@ -123,9 +123,17 @@ impl Connection {
 
             let num_bytes = match self.tcp_stream.read(&mut buf) {
                 Ok(num) => num,
-                Err(s) => {
-                    error!("recv() failed: {}", s);
-                    return Err(Error::NetworkError);
+                Err(e) => {
+                    match e.kind() {
+                        std::io::ErrorKind::WouldBlock => {
+                            log::trace!("SIP tcp read timed out.  trying again");
+                            continue;
+                        },
+                        _ => {
+                            log::error!("recv() failed: {e}");
+                            return Err(Error::NetworkError);
+                        }
+                    }
                 }
             };
 
@@ -149,14 +157,9 @@ impl Connection {
         }
 
         if text.len() == 0 {
-            if timeout.is_some() {
-                // Receiving none on timeout is OK.
-                return Ok(None);
-            } else {
-                // Receiving none with no timeout is an error.
-                log::warn!("Reading TCP stream returned 0 bytes");
-                return Err(Error::NoResponseError);
-            }
+            // Receiving none with no timeout is an error.
+            log::warn!("Reading TCP stream returned 0 bytes");
+            return Err(Error::NoResponseError);
         }
 
         // Discard the line terminator and any junk after it.

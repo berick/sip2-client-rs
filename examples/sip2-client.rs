@@ -112,6 +112,8 @@ fn main() {
         }
     }
 
+    //std::thread::sleep(std::time::Duration::from_secs(7));
+
     // ----- Item Stuff -----
 
     if let Some(item_id) = options.opt_str("item-barcode") {

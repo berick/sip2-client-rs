@@ -162,7 +162,7 @@ impl Message {
         }
     }
 
-    /// Return the first vale with the specified field code.
+    /// Return the first value with the specified field code.
     pub fn get_field_value(&self, code: &str) -> Option<String> {
         if let Some(f) = self.fields().iter().filter(|f| f.code() == code).next() {
             Some(f.value.to_string())
