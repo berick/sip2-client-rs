@@ -2,7 +2,6 @@ use std::time::Duration;
 use super::error::Error;
 use super::spec;
 use super::Message;
-use log::{debug, error, info, trace};
 use std::io::prelude::*;
 use std::net::{Shutdown, TcpStream};
 use std::str;
@@ -31,7 +30,7 @@ impl Connection {
     /// assert_eq!(Connection::new("JUNK0+..-*z$@").is_err(), true);
     /// ```
     pub fn new(sip_host: &str) -> Result<Self, Error> {
-        debug!("Connection::new() connecting to: {}", sip_host);
+        log::debug!("Connection::new() connecting to: {}", sip_host);
 
         match TcpStream::connect(sip_host) {
             Ok(stream) => Ok(Connection {
@@ -39,7 +38,7 @@ impl Connection {
                 ascii: false,
             }),
             Err(s) => {
-                error!("Connection::new() failed: {}", s);
+                log::error!("Connection::new() failed: {}", s);
                 return Err(Error::NetworkError);
             }
         }
@@ -58,12 +57,12 @@ impl Connection {
 
     /// Shutdown the TCP connection with the SIP server.
     pub fn disconnect(&self) -> Result<(), Error> {
-        debug!("Connection::disconnect()");
+        log::debug!("Connection::disconnect()");
 
         match self.tcp_stream.shutdown(Shutdown::Both) {
             Ok(_) => Ok(()),
             Err(s) => {
-                error!("disconnect() failed: {}", s);
+                log::error!("disconnect() failed: {}", s);
                 return Err(Error::NetworkError);
             }
         }
@@ -79,12 +78,12 @@ impl Connection {
             msg_sip = deunicode(&msg_sip).replace("\n", "");
         }
 
-        info!("OUTBOUND: {}", msg_sip);
+        log::info!("OUTBOUND: {}", msg_sip);
 
         match self.tcp_stream.write(&msg_sip.as_bytes()) {
             Ok(_) => Ok(()),
             Err(s) => {
-                error!("send() failed: {}", s);
+                log::error!("send() failed: {}", s);
                 return Err(Error::NetworkError);
             }
         }
@@ -144,7 +143,7 @@ impl Connection {
             let chunk = match str::from_utf8(&buf) {
                 Ok(s) => s,
                 Err(s) => {
-                    error!("recv() got non-utf data: {}", s);
+                    log::error!("recv() got non-utf data: {}", s);
                     return Err(Error::MessageFormatError);
                 }
             };
